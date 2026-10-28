@@ -1,0 +1,46 @@
+<%- include("partials/header") %>
+<div class="narrow">
+  <h1 class="display">My <em>account</em></h1>
+
+  <section class="card side__card">
+    <h2 class="eyebrow">Your upcoming stays</h2>
+    <% if (!upcoming.length) { %><p class="muted">You have no upcoming stays. <a href="/bookings/new">Book one</a>.</p><% } %>
+    <% upcoming.forEach(function (b) { %>
+      <div class="stay">
+        <span class="avatar avatar--lg" style="background: <%= b.Colour %>; color: <%= b.TextColour %>; border-color: <%= b.Colour %>;"><%= b.Initials %></span>
+        <div class="stay__body">
+          <span class="stay__name"><%= b.range %></span>
+          <span class="muted"><%= b.nights %> night<%= b.nights === 1 ? "" : "s" %> · <%= b.Guests %> guest<%= b.Guests === 1 ? "" : "s" %></span>
+          <a class="stay__link" href="/bookings/<%= b.BookingId %>/edit">Change dates</a>
+        </div>
+      </div>
+    <% }) %>
+  </section>
+
+  <section class="card side__card">
+    <h2 class="eyebrow">See the house calendar in Outlook</h2>
+    <p>This private link adds every booking to your Outlook calendar and keeps it up to date. Don't share it.</p>
+    <div class="copy">
+      <input id="feedUrl" type="text" readonly value="<%= feedUrl %>" aria-label="Your private calendar link">
+      <button class="btn btn--outline btn--sm" type="button" data-copy="#feedUrl">Copy</button>
+    </div>
+    <ol class="steps">
+      <li><strong>New Outlook / Outlook on the web:</strong> Calendar → Add calendar → Subscribe from web → paste the link → Import.</li>
+      <li><strong>Classic Outlook (Windows):</strong> Calendar → Add Calendar → From Internet… → paste the link → OK.</li>
+    </ol>
+    <p class="muted">Outlook refreshes subscribed calendars every few hours, so new bookings can take a little while to appear there. This app always shows the live calendar.</p>
+  </section>
+
+  <section class="card side__card">
+    <h2 class="eyebrow">Change password</h2>
+    <% if (pwError) { %><div class="alert alert--error" role="alert"><%= pwError %></div><% } %>
+    <form class="form form--plain" method="post" action="/account/password">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field"><label for="currentPassword">Current password</label><input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required></div>
+      <div class="field"><label for="newPassword">New password (min 10 characters)</label><input id="newPassword" name="newPassword" type="password" autocomplete="new-password" minlength="10" required></div>
+      <div class="field"><label for="confirmPassword">New password again</label><input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="10" required></div>
+      <button class="btn btn--navy" type="submit">Change password</button>
+    </form>
+  </section>
+</div>
+<%- include("partials/footer") %>

@@ -1,0 +1,30 @@
+{
+  "name": "riverhouse-booking",
+  "version": "0.1.0",
+  "description": "Shared house booking calendar (timeshare) - month calendar, no overlapping stays, Outlook feed, installable PWA. Node + Express + EJS + MySQL.",
+  "type": "module",
+  "main": "index.js",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "create-user": "node scripts/create-user.js",
+    "check-db": "node scripts/check-db.js",
+    "test": "node --test",
+    "seed-test": "node scripts/seed-test-users.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "mysql2": "^3.11.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

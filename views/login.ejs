@@ -1,0 +1,26 @@
+<%- include("partials/head") %>
+<body class="login-page">
+  <main class="login">
+    <div class="login__brand">
+      <%- include("partials/logo") %>
+      <span class="brand__name"><%= houseName %></span>
+      <span class="brand__tag">Shared house calendar</span>
+    </div>
+    <form class="card form" method="post" action="/login">
+      <h1 class="display display--sm">Welcome <em>back</em></h1>
+      <% if (error) { %><div class="alert alert--error" role="alert"><%= error %></div><% } %>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="username" required value="<%= email %>" autofocus>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn--gold btn--block" type="submit">Sign in</button>
+      <p class="muted small">Forgotten your password? Ask the house administrator to reset it.</p>
+    </form>
+  </main>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "cweijan.vscode-mysql-client2",
+    "digitalbrainstem.javascript-ejs-support",
+    "esbenp.prettier-vscode"
+  ]
+}
