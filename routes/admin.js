@@ -32,10 +32,10 @@ function readFamilyForm(body) {
     sendEmail: body.sendEmail === "on",
   };
   let error = null;
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(values.email)) error = "Please enter a valid email address.";
-  else if (!values.displayName) error = "Please enter the name shown on the calendar (e.g. \"Botha family\").";
-  else if (!/^[A-Z0-9]{1,3}$/.test(values.initials)) error = "Initials must be 1 to 3 letters or numbers.";
-  else if (!values.colour) error = "Please pick a calendar colour.";
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(values.email)) error = "Enter a valid email address.";
+  else if (!values.displayName) error = "Enter the name to show on the calendar, for example \"Botha family\".";
+  else if (!/^[A-Z0-9]{1,3}$/.test(values.initials)) error = "Use 1 to 3 letters or numbers for the initials.";
+  else if (!values.colour) error = "Choose a calendar colour.";
   return { values, error };
 }
 
@@ -92,7 +92,7 @@ router.post("/families", async (req, res, next) => {
     const { values, error } = readFamilyForm(req.body);
     if (error) return renderFamily(res, { values, error, status: 400 });
     if (await repo.findAnyUserByEmail(values.email)) {
-      return renderFamily(res, { values, status: 409, error: "There is already a family with that email address." });
+      return renderFamily(res, { values, status: 409, error: "A family with that email address is already on the calendar." });
     }
 
     const password = tempPassword();
@@ -115,7 +115,7 @@ router.post("/families", async (req, res, next) => {
       emailed = r.sent > 0 && mailMode() !== "log";
     }
     rememberOnce(req, { userId, name: values.displayName, email: values.email, password, emailed, isNew: true });
-    req.flash("success", `Added ${values.displayName}.`);
+    req.flash("success", `${values.displayName} is on the calendar.`);
     res.redirect(`/admin/families/${userId}`);
   } catch (err) {
     next(err);
@@ -128,7 +128,7 @@ async function loadFamily(req, res) {
   const id = Number.parseInt(req.params.id, 10);
   const family = Number.isInteger(id) ? await repo.getUserForAdmin(id) : null;
   if (!family) {
-    req.flash("error", "That family doesn't exist.");
+    req.flash("error", "We couldn't find that family.");
     res.redirect("/admin");
     return null;
   }
@@ -169,18 +169,18 @@ router.post("/families/:id", async (req, res, next) => {
     if (error) return renderFamily(res, { family, values, error, status: 400 });
 
     const isMe = family.UserId === req.session.user.id;
-    if (isMe && !values.isAdmin) return renderFamily(res, { family, values, status: 400, error: "You can't remove your own admin rights. Ask another admin to do it." });
-    if (isMe && !values.isActive) return renderFamily(res, { family, values, status: 400, error: "You can't deactivate your own account." });
+    if (isMe && !values.isAdmin) return renderFamily(res, { family, values, status: 400, error: "You can't remove your own admin rights – another admin can do this for you." });
+    if (isMe && !values.isActive) return renderFamily(res, { family, values, status: 400, error: "You can't deactivate your own account – another admin can do this for you." });
     const losingAdmin = family.IsAdmin && family.IsActive && (!values.isAdmin || !values.isActive);
     if (losingAdmin && (await repo.countActiveAdmins(family.UserId)) === 0) {
-      return renderFamily(res, { family, values, status: 400, error: "There must always be at least one active admin." });
+      return renderFamily(res, { family, values, status: 400, error: "The calendar needs at least one active admin. Make someone else an admin first." });
     }
     if (await repo.findAnyUserByEmail(values.email, family.UserId)) {
       return renderFamily(res, { family, values, status: 409, error: "Another family already uses that email address." });
     }
 
     await repo.updateUser(family.UserId, { ...values, textColour: textColourFor(values.colour) });
-    req.flash("success", `Saved ${values.displayName}.${!values.isActive ? " They can no longer sign in; their bookings stay on the calendar." : ""}`);
+    req.flash("success", `${values.displayName} is saved.${!values.isActive ? " They can no longer sign in; their stays remain on the calendar." : ""}`);
     res.redirect("/admin");
   } catch (err) {
     next(err);
@@ -210,7 +210,7 @@ router.post("/families/:id/new-outlook-link", async (req, res, next) => {
     const family = await loadFamily(req, res);
     if (!family) return;
     await repo.regenerateIcsToken(family.UserId);
-    req.flash("success", `${family.DisplayName} has a new Outlook calendar link. The old link has stopped working; they'll find the new one under My account.`);
+    req.flash("success", `${family.DisplayName} has a new Outlook link. The old one no longer works – they'll find the new link under My account.`);
     res.redirect(`/admin/families/${family.UserId}`);
   } catch (err) {
     next(err);
@@ -223,9 +223,9 @@ router.post("/test-email", async (req, res, next) => {
   try {
     const me = await repo.findUserById(req.session.user.id);
     const r = await sendTestEmail(me.Email);
-    if (r.failed) req.flash("error", "The test email failed - see the email log below for the reason.");
-    else if (mailMode() === "log") req.flash("success", "MAIL_MODE is \"log\": the test email was written to the terminal, not sent.");
-    else req.flash("success", `Test email sent to ${me.Email}. Check the inbox (and junk folder).`);
+    if (r.failed) req.flash("error", "The test email didn't go through. You'll find the reason in the email log.");
+    else if (mailMode() === "log") req.flash("success", "Email is in log mode, so the test email appeared in the terminal instead of an inbox.");
+    else req.flash("success", `Your test email is on its way to ${me.Email}. Check the junk folder if it doesn't arrive.`);
     res.redirect("/admin#email");
   } catch (err) {
     next(err);

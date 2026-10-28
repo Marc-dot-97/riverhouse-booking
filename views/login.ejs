@@ -1,25 +1,25 @@
 <%- include("partials/head") %>
 <body class="login-page">
   <main class="login">
-    <div class="login__brand">
+    <div class="login__brand" data-reveal>
       <%- include("partials/logo") %>
       <span class="brand__name"><%= houseName %></span>
       <span class="brand__tag">Shared house calendar</span>
     </div>
-    <form class="card form" method="post" action="/login">
+    <form class="card form" method="post" action="/login" data-reveal style="--i: 1;">
       <h1 class="display display--sm">Welcome <em>back</em></h1>
-      <% if (error) { %><div class="alert alert--error" role="alert"><%= error %></div><% } %>
+      <% if (error) { %><div class="alert alert--error alert--shake" role="alert"><%= error %></div><% } %>
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <div class="field">
+      <div class="field field--float">
+        <input id="email" name="email" type="email" autocomplete="username" required value="<%= email %>" placeholder=" " autofocus>
         <label for="email">Email</label>
-        <input id="email" name="email" type="email" autocomplete="username" required value="<%= email %>" autofocus>
       </div>
-      <div class="field">
+      <div class="field field--float">
+        <input id="password" name="password" type="password" autocomplete="current-password" required placeholder=" ">
         <label for="password">Password</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" required>
       </div>
-      <button class="btn btn--gold btn--block" type="submit">Sign in</button>
-      <p class="muted small">Forgotten your password? Ask the house administrator to reset it.</p>
+      <button class="btn btn--gold btn--block" type="submit" data-loading-text="Signing you in…">Sign in</button>
+      <p class="muted small">Forgotten your password? Your house administrator can reset it for you.</p>
     </form>
   </main>
 </body>

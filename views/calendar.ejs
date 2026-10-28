@@ -1,47 +1,51 @@
 <%- include("partials/header") %>
 <div class="cal-layout">
   <section class="cal">
-    <div class="cal__head">
-      <h1 class="display">
+    <div class="cal__head" data-reveal>
+      <h1 class="display cal__title">
         <%= month.name %> <em><%= month.year %></em>
       </h1>
       <div class="cal__nav">
-        <a class="btn btn--outline btn--sm" href="/?m=<%= todayMonth %>">Today</a>
-        <a class="round-btn" href="/?m=<%= prevMonth %>" aria-label="Previous month">
+        <a class="btn btn--outline btn--sm" href="/?m=<%= todayMonth %>" data-month-dir="today">Today</a>
+        <a class="round-btn" href="/?m=<%= prevMonth %>" aria-label="Previous month" data-month-dir="back" title="Previous month (←)">
           <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M12 4l-6 6 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
-        <a class="round-btn" href="/?m=<%= nextMonth %>" aria-label="Next month">
+        <a class="round-btn" href="/?m=<%= nextMonth %>" aria-label="Next month" data-month-dir="forward" title="Next month (→)">
           <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8 4l6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
       </div>
     </div>
 
-    <div class="card cal__card">
+    <div class="card cal__card" data-reveal>
       <div class="cal__grid cal__weekdays" aria-hidden="true">
         <% ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].forEach(function (d) { %>
           <span><span class="wd-long"><%= d %></span><span class="wd-short"><%= d[0] %></span></span>
         <% }) %>
       </div>
       <div class="cal__grid" role="grid" aria-label="<%= month.name %> <%= month.year %>">
-        <% weeks.forEach(function (week) { %>
-          <% week.forEach(function (c) {
+        <% weeks.forEach(function (week, row) { %>
+          <% week.forEach(function (c, col) {
                const free = !c.booking && !c.isPast;
                const editable = c.booking && c.booking.canEdit;
+               const hl = c.booking && highlight && c.booking.BookingId === highlight;
+               const fresh = c.booking && (c.booking.isNew || c.booking.isChanged);
                const cls = ["day", c.inMonth ? "" : "day--out", c.isPast ? "day--past" : "", free ? "day--free" : ""].join(" ");
                const label = c.booking ? c.booking.DisplayName + " staying" : (c.isPast ? "" : "free, book from this day");
+               const pos = "--row:" + row + ";--col:" + col + ";";
           %>
             <% if (free) { %>
-              <a class="<%= cls %>" href="/bookings/new?checkIn=<%= c.iso %>" aria-label="<%= c.iso %>, <%= label %>">
+              <a class="<%= cls %>" style="<%= pos %>" href="/bookings/new?checkIn=<%= c.iso %>" aria-label="<%= c.iso %>, <%= label %>">
             <% } else if (editable) { %>
-              <a class="<%= cls %> day--editable" href="/bookings/<%= c.booking.BookingId %>/edit" title="<%= c.booking.DisplayName %> – click to change" aria-label="<%= c.iso %>, <%= c.booking.DisplayName %> staying, change this stay">
+              <a class="<%= cls %> day--editable" style="<%= pos %>" href="/bookings/<%= c.booking.BookingId %>/edit" title="<%= c.booking.DisplayName %> – select to change" aria-label="<%= c.iso %>, <%= c.booking.DisplayName %> staying, change this stay">
             <% } else { %>
-              <div class="<%= cls %>" <% if (c.booking) { %>title="<%= c.booking.DisplayName %>"<% } %>>
+              <div class="<%= cls %>" style="<%= pos %>" <% if (c.booking) { %>title="<%= c.booking.DisplayName %>"<% } %>>
             <% } %>
                 <span class="day__num <%= c.isToday ? 'day__num--today' : '' %>"><%= c.day %></span>
                 <% if (c.bar) { %>
-                  <span class="bar <%= c.bar.isStart ? 'bar--start' : '' %> <%= c.bar.isEnd ? 'bar--end' : '' %>"
+                  <span class="bar <%= c.bar.isStart ? 'bar--start' : '' %> <%= c.bar.isEnd ? 'bar--end' : '' %> <%= hl ? 'bar--highlight' : '' %>"
                         style="background: <%= c.booking.Colour %>; color: <%= c.booking.TextColour %>;">
                     <% if (c.bar.showLabel) { %>
+                      <% if (fresh) { %><span class="badge badge--dot" title="<%= c.booking.isNew ? 'New' : 'Changed' %> since your last visit"></span><% } %>
                       <span class="bar__name" style="--span: <%= c.bar.span %>;"><%= c.booking.DisplayName %></span>
                       <span class="bar__init"><%= c.booking.Initials %></span>
                     <% } %>
@@ -55,29 +59,34 @@
   </section>
 
   <aside class="side">
-    <div class="card side__card">
+    <div class="card side__card" data-reveal>
       <h2 class="eyebrow">Who's going this month</h2>
       <% if (!thisMonth.length) { %>
-        <p class="muted">Nobody has booked yet this month.</p>
+        <p class="muted">No stays yet this month – the house is yours to plan.</p>
       <% } %>
-      <% thisMonth.forEach(function (b) { %>
-        <div class="stay">
+      <% thisMonth.forEach(function (b, i) { %>
+        <div class="stay <%= highlight === b.BookingId ? 'stay--highlight' : '' %>" data-reveal style="--i: <%= i + 1 %>;" <% if (highlight === b.BookingId) { %>id="highlighted"<% } %>>
           <span class="avatar avatar--lg" style="background: <%= b.Colour %>; color: <%= b.TextColour %>; border-color: <%= b.Colour %>;"><%= b.Initials %></span>
           <div class="stay__body">
-            <span class="stay__name"><%= b.DisplayName %> <% if (b.isMine) { %><span class="pill">You</span><% } %></span>
+            <span class="stay__name">
+              <%= b.DisplayName %>
+              <% if (b.isMine) { %><span class="pill">You</span><% } %>
+              <% if (b.isNew) { %><span class="signal signal--new"><span class="badge badge--dot" aria-hidden="true"></span>New</span><% } %>
+              <% if (b.isChanged) { %><span class="signal signal--new"><span class="badge badge--dot" aria-hidden="true"></span>Changed</span><% } %>
+            </span>
             <span class="muted"><%= b.range %> · <%= b.nights %> night<%= b.nights === 1 ? "" : "s" %> · <%= b.Guests %> guest<%= b.Guests === 1 ? "" : "s" %></span>
             <% if (b.Note) { %><span class="stay__note"><%= b.Note %></span><% } %>
             <% if (b.canEdit) { %>
               <div class="stay__actions">
-              <a class="stay__link" href="/bookings/<%= b.BookingId %>/edit">Change dates</a>
-              <details class="confirm">
-                <summary>Cancel stay</summary>
-                <form method="post" action="/bookings/<%= b.BookingId %>/cancel">
-                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                  <span>Free up these dates for everyone?</span>
-                  <button class="btn btn--danger btn--sm" type="submit">Yes, cancel</button>
-                </form>
-              </details>
+                <a class="stay__link" href="/bookings/<%= b.BookingId %>/edit">Change dates</a>
+                <details class="confirm" data-confirm-title="Cancel this stay?" data-confirm-text="<%= b.DisplayName %>, <%= b.range %> (<%= b.nights %> night<%= b.nights === 1 ? '' : 's' %>). The nights open up for everyone, and every family receives an update.">
+                  <summary>Cancel stay</summary>
+                  <form method="post" action="/bookings/<%= b.BookingId %>/cancel">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <span>Open these nights up for everyone?</span>
+                    <button class="btn btn--danger btn--sm" type="submit" data-loading-text="Cancelling…">Yes, cancel</button>
+                  </form>
+                </details>
               </div>
             <% } %>
           </div>
@@ -85,13 +94,13 @@
       <% }) %>
     </div>
 
-    <div class="card side__card">
+    <div class="card side__card" data-reveal>
       <h2 class="eyebrow">Open dates</h2>
       <% if (!open.length) { %>
-        <p class="muted">No open dates left this month.</p>
+        <p class="muted">Every night this month is spoken for. Next month may suit you.</p>
       <% } %>
-      <% open.forEach(function (r) { %>
-        <a class="open" href="/bookings/new?checkIn=<%= r.startISO %>&checkOut=<%= r.endISO %>">
+      <% open.forEach(function (r, i) { %>
+        <a class="open" data-reveal style="--i: <%= i + 1 %>;" href="/bookings/new?checkIn=<%= r.startISO %>&checkOut=<%= r.endISO %>">
           <span><%= r.range %></span>
           <span class="muted"><%= r.nights %> night<%= r.nights === 1 ? "" : "s" %></span>
         </a>

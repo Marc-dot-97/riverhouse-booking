@@ -7,6 +7,13 @@ import {
 
 const router = express.Router();
 
+/** Was this stay booked or changed by someone else since your last visit? */
+function freshness(b, myId, lastSeen) {
+  if (!lastSeen || b.UserId === myId) return { isNew: false, isChanged: false };
+  const isNew = b.CreatedAt > lastSeen;
+  return { isNew, isChanged: !isNew && !!b.UpdatedAt && b.UpdatedAt > lastSeen };
+}
+
 router.get("/", async (req, res, next) => {
   try {
     const today = todayISO();
@@ -17,10 +24,13 @@ router.get("/", async (req, res, next) => {
     // The grid shows 6 weeks starting on the Monday on/before the 1st.
     const gridStart = addDays(firstOfMonth, -((firstOfMonth.getUTCDay() + 6) % 7));
     const me = req.session.user;
+    const lastSeen = req.session.lastSeenAt ? new Date(req.session.lastSeenAt) : null;
+    const highlight = Number.parseInt(req.query.hl, 10) || 0;
     const bookings = (await repo.bookingsBetween(gridStart, addDays(gridStart, 42))).map((b) => ({
       ...b,
       // Owners can change/cancel their own stays that haven't finished; admins can do any.
       canEdit: (b.UserId === me.id || me.isAdmin) && toISO(b.CheckOut) > today,
+      ...freshness(b, me.id, lastSeen),
     }));
     const filled = buildMonthGrid(year, month, bookings, today);
 
@@ -57,6 +67,7 @@ router.get("/", async (req, res, next) => {
       thisMonth,
       open,
       today,
+      highlight,
     });
   } catch (err) {
     next(err);

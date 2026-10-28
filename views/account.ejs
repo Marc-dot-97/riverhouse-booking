@@ -1,16 +1,17 @@
 <%- include("partials/header") %>
 <div class="narrow">
-  <h1 class="display">My <em>account</em></h1>
+  <h1 class="display" data-reveal>My <em>account</em></h1>
 
   <% if (user.mustChange) { %>
-    <div class="alert alert--error" role="alert">
-      You signed in with a temporary password. Please <a href="#password">choose your own password</a> before using the calendar.
+    <div class="alert alert--warn" role="alert">
+      <span class="signal signal--warn"><span class="signal__shape" aria-hidden="true"></span>One step to go</span>
+      You signed in with a temporary password. <a href="#password">Choose your own password</a> and the calendar is yours.
     </div>
   <% } %>
 
-  <section class="card side__card">
+  <section class="card side__card" data-reveal>
     <h2 class="eyebrow">Your upcoming stays</h2>
-    <% if (!upcoming.length) { %><p class="muted">You have no upcoming stays. <a href="/bookings/new">Book one</a>.</p><% } %>
+    <% if (!upcoming.length) { %><p class="muted">No stays planned yet. <a href="/bookings/new">Book your next escape</a>.</p><% } %>
     <% upcoming.forEach(function (b) { %>
       <div class="stay">
         <span class="avatar avatar--lg" style="background: <%= b.Colour %>; color: <%= b.TextColour %>; border-color: <%= b.Colour %>;"><%= b.Initials %></span>
@@ -23,38 +24,38 @@
     <% }) %>
   </section>
 
-  <section class="card side__card">
-    <h2 class="eyebrow">See the house calendar in Outlook</h2>
-    <p>This private link adds every booking to your Outlook calendar and keeps it up to date. Don't share it.</p>
+  <section class="card side__card" data-reveal>
+    <h2 class="eyebrow">The house calendar in Outlook</h2>
+    <p>Add this private link to Outlook once, and every stay appears in your own calendar – kept up to date for you. The link is personal, so please keep it to yourself.</p>
     <div class="copy">
       <input id="feedUrl" type="text" readonly value="<%= feedUrl %>" aria-label="Your private calendar link">
-      <button class="btn btn--outline btn--sm" type="button" data-copy="#feedUrl">Copy</button>
+      <button class="btn btn--outline btn--sm" type="button" data-copy="#feedUrl" data-copy-message="Your link is copied – paste it into Outlook.">Copy</button>
     </div>
     <ol class="steps">
       <li><strong>New Outlook / Outlook on the web:</strong> Calendar → Add calendar → Subscribe from web → paste the link → Import.</li>
       <li><strong>Classic Outlook (Windows):</strong> Calendar → Add Calendar → From Internet… → paste the link → OK.</li>
     </ol>
-    <p class="muted">Outlook refreshes subscribed calendars every few hours, so new bookings can take a little while to appear there. This app always shows the live calendar.</p>
+    <p class="muted">Outlook refreshes subscribed calendars every few hours, so a new stay may take a little while to appear there. Here, you always see the live calendar.</p>
   </section>
 
-  <section class="card side__card">
+  <section class="card side__card" data-reveal>
     <h2 class="eyebrow">Emails</h2>
     <form class="toggle-form" method="post" action="/account/notifications">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <label class="check"><input type="checkbox" name="emailNotifications" <%= account.EmailNotifications ? "checked" : "" %>> Email me at <%= account.Email %> when a stay is booked, changed or cancelled</label>
-      <button class="btn btn--outline btn--sm" type="submit">Save</button>
+      <label class="check"><input type="checkbox" name="emailNotifications" <%= account.EmailNotifications ? "checked" : "" %>> Email me at <%= account.Email %> whenever a stay is booked, changed or cancelled</label>
+      <button class="btn btn--outline btn--sm" type="submit" data-loading-text="Saving…">Save</button>
     </form>
   </section>
 
-  <section class="card side__card" id="password">
+  <section class="card side__card" id="password" data-reveal>
     <h2 class="eyebrow">Change password</h2>
-    <% if (pwError) { %><div class="alert alert--error" role="alert"><%= pwError %></div><% } %>
+    <% if (pwError) { %><div class="alert alert--error alert--shake" role="alert"><%= pwError %></div><% } %>
     <form class="form form--plain" method="post" action="/account/password">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div class="field"><label for="currentPassword"><%= user.mustChange ? "Temporary password" : "Current password" %></label><input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required></div>
-      <div class="field"><label for="newPassword">New password (min 10 characters)</label><input id="newPassword" name="newPassword" type="password" autocomplete="new-password" minlength="10" required></div>
-      <div class="field"><label for="confirmPassword">New password again</label><input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="10" required></div>
-      <button class="btn btn--navy" type="submit">Change password</button>
+      <div class="field"><label for="newPassword">New password (at least 10 characters)</label><input id="newPassword" name="newPassword" type="password" autocomplete="new-password" minlength="10" required></div>
+      <div class="field"><label for="confirmPassword">Confirm your new password</label><input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="10" required></div>
+      <button class="btn btn--navy" type="submit" data-loading-text="Saving…">Save new password</button>
     </form>
   </section>
 </div>

@@ -1,27 +1,27 @@
 <%- include("partials/header") %>
 <div class="narrow">
-  <a href="/" class="back-link">
+  <a href="/" class="back-link" data-reveal>
     <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M12 4l-6 6 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    Back to calendar
+    Back to the calendar
   </a>
 
   <% if (booking) { %>
-    <h1 class="display">Change your <em>stay</em></h1>
-    <p class="muted lead">Move, shorten or extend the stay. Nobody else's dates are affected – if the new dates overlap another family, you'll be told.</p>
-    <div class="original">
+    <h1 class="display" data-reveal>Change your <em>stay</em></h1>
+    <p class="muted lead" data-reveal>Move, shorten or extend your stay. If your new dates meet another family's, we'll let you know straight away.</p>
+    <div class="original" data-reveal>
       <span class="avatar avatar--lg" style="background: <%= booking.Colour %>; color: <%= booking.TextColour %>; border-color: <%= booking.Colour %>;"><%= booking.Initials %></span>
-      <span><strong><%= booking.DisplayName %></strong><br><span class="muted">Currently booked: <%= originalRange %></span></span>
+      <span><strong><%= booking.DisplayName %></strong><br><span class="muted">Booked for <%= originalRange %></span></span>
     </div>
   <% } else { %>
-    <h1 class="display">Book a <em>stay</em></h1>
-    <p class="muted lead">Pick when you arrive and when you leave. Someone else can arrive on the day you leave.</p>
+    <h1 class="display" data-reveal>Book a <em>stay</em></h1>
+    <p class="muted lead" data-reveal>Choose your arrival and departure. The next family can arrive on the day you leave.</p>
   <% } %>
 
   <% if (error) { %>
-    <div class="alert alert--error" role="alert"><%= error %></div>
+    <div class="alert alert--error alert--shake" role="alert"><%= error %></div>
   <% } %>
 
-  <form class="card form" method="post" action="<%= booking ? '/bookings/' + booking.BookingId : '/bookings' %>" novalidate>
+  <form class="card form" method="post" action="<%= booking ? '/bookings/' + booking.BookingId : '/bookings' %>" novalidate data-reveal>
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <div class="form__row">
       <div class="field">
@@ -38,18 +38,18 @@
       </div>
     </div>
     <% if (booking && started) { %>
-      <p class="muted" id="startedNote">This stay has already started, so only the departure date can change.</p>
+      <p class="muted" id="startedNote">Your stay has already begun, so you can change the departure date only.</p>
     <% } %>
-    <p class="muted" id="nights" aria-live="polite"></p>
+    <p class="nights" id="nights" aria-live="polite"></p>
     <div class="field">
-      <label for="guests">Number of guests</label>
+      <label for="guests">Guests</label>
       <input id="guests" name="guests" type="number" min="1" max="30" required value="<%= Number.isInteger(values.guests) ? values.guests : 2 %>">
     </div>
     <div class="field">
-      <label for="note">Note for the other owners <span class="muted">(optional)</span></label>
-      <input id="note" name="note" type="text" maxlength="500" placeholder="e.g. Bringing the boat" value="<%= values.note %>">
+      <label for="note">A note for the other families <span class="muted">(optional)</span></label>
+      <input id="note" name="note" type="text" maxlength="500" placeholder="For example: bringing the boat" value="<%= values.note %>">
     </div>
-    <button class="btn btn--gold btn--block" type="submit"><%= booking ? "Save changes" : "Book my stay" %></button>
+    <button class="btn btn--gold btn--block" type="submit" data-loading-text="<%= booking ? 'Saving your changes…' : 'Booking your stay…' %>"><%= booking ? "Save changes" : "Book my stay" %></button>
     <% if (booking) { %>
       <a class="btn btn--outline btn--block" href="/?m=<%= values.checkIn.slice(0, 7) %>">Keep it as it is</a>
     <% } %>

@@ -1,4 +1,15 @@
   </main>
 </div>
+<%# Shared confirm dialog - superimposed over the page for "are you sure?" moments (filled in by app.js). %>
+<dialog class="sheet" id="confirmDialog" aria-labelledby="confirmTitle">
+  <div class="sheet__body">
+    <h2 class="sheet__title" id="confirmTitle">Are you sure?</h2>
+    <p class="sheet__text" id="confirmText"></p>
+    <div class="sheet__actions">
+      <button class="btn btn--outline" type="button" value="cancel" data-close>Keep it</button>
+      <button class="btn btn--danger" type="button" value="confirm" id="confirmGo">Yes, cancel</button>
+    </div>
+  </div>
+</dialog>
 </body>
 </html>

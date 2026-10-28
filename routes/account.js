@@ -34,16 +34,16 @@ router.post("/password", async (req, res, next) => {
     const user = await repo.findUserById(req.session.user.id);
 
     let pwError = null;
-    if (!(await bcrypt.compare(current, user.PasswordHash))) pwError = "Your current password isn't right.";
-    else if (next1.length < 10) pwError = "The new password must be at least 10 characters.";
-    else if (next1 !== next2) pwError = "The two new passwords don't match.";
-    else if (next1 === current) pwError = "Please choose a password that's different from the current one.";
+    if (!(await bcrypt.compare(current, user.PasswordHash))) pwError = "That isn't your current password. Please try again.";
+    else if (next1.length < 10) pwError = "Choose a new password of at least 10 characters.";
+    else if (next1 !== next2) pwError = "The two new passwords don't match yet.";
+    else if (next1 === current) pwError = "Choose a password that's different from your current one.";
     if (pwError) return render(req, res.status(400), { pwError });
 
     const wasTemporary = !!user.MustChangePassword;
     await repo.updatePasswordHash(user.UserId, await bcrypt.hash(next1, 12)); // also clears MustChangePassword
     req.session.user.mustChange = false;
-    req.flash("success", wasTemporary ? "Thanks - your new password is saved. Welcome to the calendar!" : "Your password has been changed.");
+    req.flash("success", wasTemporary ? "Your new password is saved. Welcome to the house calendar." : "Your new password is saved.");
     res.redirect(wasTemporary ? "/" : "/account");
   } catch (err) {
     next(err);
@@ -54,7 +54,7 @@ router.post("/notifications", async (req, res, next) => {
   try {
     const on = req.body.emailNotifications === "on";
     await repo.setEmailNotifications(req.session.user.id, on);
-    req.flash("success", on ? "You'll get an email when stays are booked, changed or cancelled." : "Booking emails are switched off for you.");
+    req.flash("success", on ? "You'll receive an email whenever a stay is booked, changed or cancelled." : "You've switched booking emails off. You can turn them back on here at any time.");
     res.redirect("/account");
   } catch (err) {
     next(err);

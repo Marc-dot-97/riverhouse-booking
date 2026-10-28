@@ -1,0 +1,269 @@
+/* =====================================================================
+   Riverhouse – functional animation
+   Every animation has a job: feedback, highlight, meaning, position or
+   transition. One shared set of timings keeps the whole app in rhythm.
+   ===================================================================== */
+
+:root {
+  /* Timing */
+  --t-instant: 120ms;   /* presses, hovers            */
+  --t-quick: 200ms;     /* small state changes        */
+  --t-base: 320ms;      /* elements appearing         */
+  --t-slow: 480ms;      /* views, large movements     */
+  --t-stagger: 45ms;    /* delay between siblings     */
+  /* Easing */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);       /* things arriving   */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);            /* things leaving    */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);    /* things moving     */
+  --ease-spring: cubic-bezier(0.34, 1.45, 0.64, 1); /* small, happy pops */
+  /* Signal colours – badges and small status shapes only, never large areas */
+  --signal-red: #D4372C;
+  --signal-green: #2E8B57;
+  --signal-yellow: #E8A92B;
+}
+
+/* ---------------------------------------------------------------------
+   TRANSITIONS – views
+   Page-to-page cross-fade (Chrome/Edge). The menu stays still so you keep
+   your bearings; only the content changes.
+   --------------------------------------------------------------------- */
+@view-transition { navigation: auto; }
+.sidebar { view-transition-name: sidebar; }
+.toasts { view-transition-name: toasts; }
+::view-transition-old(root) { animation: rh-fade-out var(--t-quick) var(--ease-in) both; }
+::view-transition-new(root) { animation: rh-fade-in var(--t-base) var(--ease-out) both; }
+
+/* Month to month: the calendar slides in from the side you travelled to. */
+.js[data-dir="forward"] .cal__card { animation: rh-from-right var(--t-slow) var(--ease-out) both; }
+.js[data-dir="back"] .cal__card { animation: rh-from-left var(--t-slow) var(--ease-out) both; }
+.js[data-dir="forward"] .cal__title,
+.js[data-dir="back"] .cal__title { animation: rh-fade-in var(--t-base) var(--ease-out) both; }
+
+/* ---------------------------------------------------------------------
+   SHOW AND HIDE – content appears bottom-to-top with a slight delay,
+   once only. Elements below the fold wait until you scroll to them.
+   (Only when JavaScript runs, so nothing is ever hidden by mistake.)
+   --------------------------------------------------------------------- */
+.js [data-reveal] { opacity: 0; transform: translateY(14px); }
+.js [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--t-base) var(--ease-out) calc(var(--i, 0) * var(--t-stagger)),
+    transform var(--t-base) var(--ease-out) calc(var(--i, 0) * var(--t-stagger));
+}
+/* A month slide already moves the calendar – don't move it twice. */
+.js[data-dir] .cal__card[data-reveal] { opacity: 1; transform: none; }
+
+/* Calendar: days settle row by row, then each stay's bar draws itself
+   left-to-right, so you see where a stay starts and where it ends. */
+.js .cal__card.is-revealed .day {
+  /* "backwards" (not "both"): once finished, nothing lingers that could clip the labels */
+  animation: rh-fade-up var(--t-base) var(--ease-out) backwards;
+  animation-delay: calc(var(--row, 0) * 40ms);
+}
+.js .cal__card.is-revealed .bar {
+  animation: rh-bar-draw var(--t-slow) var(--ease-in-out) backwards;
+  animation-delay: calc(120ms + var(--row, 0) * 60ms + var(--col, 0) * 28ms);
+}
+.day .bar { transform-origin: left center; }
+
+/* ---------------------------------------------------------------------
+   FEEDBACK – every press, save and error answers back
+   --------------------------------------------------------------------- */
+.btn, .round-btn, .icon-btn, .open, .nav__link, .stay__link, .swatch__chip, .toast__close {
+  transition:
+    transform var(--t-instant) var(--ease-out),
+    background-color var(--t-quick) var(--ease-out),
+    color var(--t-quick) var(--ease-out),
+    border-color var(--t-quick) var(--ease-out),
+    box-shadow var(--t-quick) var(--ease-out);
+}
+.btn:active, .round-btn:active, .icon-btn:active, .open:active { transform: scale(0.97); }
+.btn:hover { box-shadow: 0 4px 14px rgba(33, 41, 52, 0.12); }
+.round-btn:hover { border-color: var(--gold); }
+.open:hover { transform: translateX(3px); }
+.open:active { transform: translateX(3px) scale(0.98); }
+
+/* Loading: the button keeps its size, shows a spinner and its "…ing" label. */
+.btn.is-loading { pointer-events: none; opacity: 0.92; }
+.btn.is-loading::before {
+  content: "";
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid currentColor; border-right-color: transparent;
+  animation: rh-spin 0.7s linear infinite;
+}
+
+/* Errors: a short shake points to what needs your attention. */
+.alert { animation: rh-fade-up var(--t-base) var(--ease-out) both; }
+.alert--shake { animation: rh-fade-up var(--t-base) var(--ease-out) both, rh-shake 420ms var(--ease-in-out) 220ms both; }
+.alert--warn { background: #FBF3E2; border: 1px solid #E5C58A; color: #5B4416; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+
+/* Copy buttons: a quick pop confirms the copy. */
+.is-copied { animation: rh-pop var(--t-base) var(--ease-spring); }
+
+/* Calendar days react to the pointer. */
+.day { transition: background-color var(--t-quick) var(--ease-out); }
+.day--free .day__num::after { opacity: 0; transition: opacity var(--t-quick) var(--ease-out); }
+.day--free:hover .day__num::after { opacity: 1; }
+.day--editable .bar { transition: filter var(--t-quick) var(--ease-out), transform var(--t-quick) var(--ease-out); }
+.day--editable:hover .bar { transform: translateY(-1px); }
+
+/* Number of nights on the booking form updates with a soft tick. */
+.nights { min-height: 1.2em; margin: 0; font-size: 14px; color: var(--bronze-text); font-weight: 500; }
+.nights.is-updated { animation: rh-pop var(--t-base) var(--ease-spring); }
+
+/* ---------------------------------------------------------------------
+   MEANING – floating labels: the label moves up to make room for you
+   --------------------------------------------------------------------- */
+.field--float { position: relative; }
+.field--float input { height: 56px; padding: 22px 14px 6px; }
+.field--float label {
+  position: absolute; left: 15px; top: 18px;
+  font-size: 15px; font-weight: 400; color: var(--muted);
+  pointer-events: none; transform-origin: left top;
+  transition: transform var(--t-quick) var(--ease-out), color var(--t-quick) var(--ease-out);
+}
+.field--float input:focus + label,
+.field--float input:not(:placeholder-shown) + label {
+  transform: translateY(-11px) scale(0.78);
+  color: var(--bronze-text); font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------
+   NOTIFICATIONS – toasts (top right; top of the screen on phones)
+   Brand colours for the surface, signal colours only for the small icon.
+   --------------------------------------------------------------------- */
+.toasts {
+  position: fixed; top: 20px; right: 20px; z-index: 50;
+  display: flex; flex-direction: column; gap: 10px;
+  width: min(420px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.toast {
+  position: relative; overflow: hidden; pointer-events: auto;
+  display: grid; grid-template-columns: auto 1fr auto; align-items: start; gap: 12px;
+  background: var(--navy); color: var(--cream);
+  border-radius: 14px; padding: 14px 12px 16px 14px;
+  box-shadow: 0 14px 36px rgba(24, 29, 36, 0.28);
+  animation: rh-toast-in var(--t-slow) var(--ease-spring) both;
+}
+.toast.is-leaving { animation: rh-toast-out var(--t-base) var(--ease-in) both; }
+.toast__icon {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center; color: var(--white);
+  animation: rh-pop var(--t-base) var(--ease-spring) 180ms both;
+}
+.toast--success .toast__icon { background: var(--signal-green); }
+.toast--error .toast__icon { background: var(--signal-red); }
+.toast__tick { stroke-dasharray: 16; stroke-dashoffset: 16; animation: rh-draw var(--t-base) var(--ease-out) 380ms forwards; }
+.toast__text { margin: 4px 0 0; font-size: 14px; line-height: 1.45; }
+.toast__close {
+  width: 32px; height: 32px; border: none; border-radius: 16px;
+  background: transparent; color: #D9D2C8; display: inline-flex; align-items: center; justify-content: center;
+}
+.toast__close:hover { background: rgba(249, 240, 236, 0.1); color: var(--white); }
+.toast__timer {
+  position: absolute; left: 0; bottom: 0; height: 3px; width: 100%;
+  background: var(--gold); transform-origin: left center;
+  animation: rh-timer var(--toast-life, 6500ms) linear both;
+}
+.toast:hover .toast__timer, .toast:focus-within .toast__timer { animation-play-state: paused; }
+
+/* ---------------------------------------------------------------------
+   HIGHLIGHT – badges and visual cues draw your eye to what's new
+   --------------------------------------------------------------------- */
+.badge { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+/* Generic badge (count) – signal red, used to attract attention. */
+.badge--count {
+  margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;
+  background: var(--signal-red); color: var(--white);
+  font-family: var(--font-label); font-size: 11px; font-weight: 500; letter-spacing: 0.5px;
+  animation: rh-pop var(--t-slow) var(--ease-spring) 400ms both, rh-ring 1.6s var(--ease-out) 900ms 2;
+}
+/* Generic badge small – a dot, placed right before what it refers to. */
+.badge--dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--signal-red);
+  box-shadow: 0 0 0 2px var(--white);
+  animation: rh-ring 1.6s var(--ease-out) 600ms 3;
+}
+.bar .badge--dot { margin-right: 6px; position: relative; z-index: 3; }
+
+/* Signal badges: OK = green circle, warning = yellow rhombus, error = red triangle. */
+.signal { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--navy); white-space: nowrap; }
+.signal__shape { width: 9px; height: 9px; display: inline-block; flex-shrink: 0; }
+.signal--ok .signal__shape { background: var(--signal-green); border-radius: 50%; }
+.signal--warn .signal__shape { background: var(--signal-yellow); transform: rotate(45deg) scale(0.85); }
+.signal--error .signal__shape { background: var(--signal-red); width: 11px; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.signal--new { margin-left: 4px; color: var(--signal-red); font-family: var(--font-label); font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; gap: 5px; vertical-align: middle; }
+.signal--new .badge--dot { box-shadow: none; }
+
+/* The stay you just booked or changed glows, so you see where it landed. */
+.js .cal__card.is-revealed .bar--highlight,
+.bar--highlight {
+  animation: rh-bar-draw var(--t-slow) var(--ease-in-out) backwards, rh-glow 1.2s var(--ease-in-out) 900ms 3;
+  animation-delay: calc(120ms + var(--row, 0) * 60ms + var(--col, 0) * 28ms), 900ms;
+}
+.stay--highlight { border-radius: 12px; animation: rh-flash 2.4s var(--ease-out) 500ms both; }
+
+/* ---------------------------------------------------------------------
+   SUPERIMPOSING – the confirm dialog sits over the page.
+   Desktop: scales up in the centre. Phone: a sheet slides up from below.
+   --------------------------------------------------------------------- */
+.sheet {
+  border: none; padding: 0; border-radius: 18px; max-width: 440px; width: calc(100vw - 32px);
+  background: var(--white); color: var(--navy);
+  box-shadow: 0 24px 60px rgba(24, 29, 36, 0.35);
+}
+.sheet[open] { animation: rh-dialog-in var(--t-base) var(--ease-out) both; }
+.sheet::backdrop { background: rgba(24, 29, 36, 0.55); backdrop-filter: blur(2px); }
+.sheet[open]::backdrop { animation: rh-fade-in var(--t-base) var(--ease-out) both; }
+.sheet.is-closing { animation: rh-dialog-out var(--t-quick) var(--ease-in) both; }
+.sheet.is-closing::backdrop { animation: rh-fade-out var(--t-quick) var(--ease-in) both; }
+.sheet__body { padding: 26px 24px 22px; display: flex; flex-direction: column; gap: 10px; }
+.sheet__title { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 26px; }
+.sheet__text { margin: 0 0 8px; color: var(--muted); font-size: 15px; line-height: 1.5; }
+.sheet__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+
+@media (max-width: 760px) {
+  .toasts { top: 12px; right: 16px; left: 16px; width: auto; }
+  .toast { animation-name: rh-toast-down; }
+  .toast.is-leaving { animation-name: rh-toast-up; }
+  .sheet { margin: auto 0 0; width: 100%; max-width: none; border-radius: 20px 20px 0 0; }
+  .sheet[open] { animation-name: rh-sheet-up; animation-duration: var(--t-slow); }
+  .sheet.is-closing { animation-name: rh-sheet-down; }
+  .sheet__actions .btn { flex: 1; }
+  .badge--count { margin-left: 4px; }
+}
+
+/* ---------------------------------------------------------------------
+   Keyframes
+   --------------------------------------------------------------------- */
+@keyframes rh-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rh-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes rh-fade-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes rh-from-right { from { opacity: 0; transform: translateX(48px); } to { opacity: 1; transform: none; } }
+@keyframes rh-from-left { from { opacity: 0; transform: translateX(-48px); } to { opacity: 1; transform: none; } }
+@keyframes rh-bar-draw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes rh-spin { to { transform: rotate(360deg); } }
+@keyframes rh-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); } 40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); } 80% { transform: translateX(2px); }
+}
+@keyframes rh-pop { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes rh-draw { to { stroke-dashoffset: 0; } }
+@keyframes rh-toast-in { from { opacity: 0; transform: translateX(40px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes rh-toast-out { to { opacity: 0; transform: translateX(40px); } }
+@keyframes rh-toast-down { from { opacity: 0; transform: translateY(-24px); } to { opacity: 1; transform: none; } }
+@keyframes rh-toast-up { to { opacity: 0; transform: translateY(-24px); } }
+@keyframes rh-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@keyframes rh-ring { 0% { box-shadow: 0 0 0 0 rgba(212, 55, 44, 0.55); } 100% { box-shadow: 0 0 0 9px rgba(212, 55, 44, 0); } }
+/* A soft light sweeps over the bar. Inset shadow only: no seams between day-segments,
+   and no stacking context, so the family name can still run across the whole bar. */
+@keyframes rh-glow { 0%, 100% { box-shadow: inset 0 0 0 40px rgba(255, 255, 255, 0); } 45% { box-shadow: inset 0 0 0 40px rgba(255, 255, 255, 0.42); } }
+@keyframes rh-flash { 0%, 35% { background: #F6EAD5; box-shadow: 0 0 0 8px #F6EAD5; } 100% { background: transparent; box-shadow: 0 0 0 8px transparent; } }
+@keyframes rh-dialog-in { from { opacity: 0; transform: translateY(8px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes rh-dialog-out { to { opacity: 0; transform: scale(0.97); } }
+@keyframes rh-sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes rh-sheet-down { to { transform: translateY(100%); } }

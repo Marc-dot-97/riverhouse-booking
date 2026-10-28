@@ -1,0 +1,19 @@
+<%# One-time messages, shown as toast notifications (top right; top on phones). %>
+<div class="toasts" aria-live="polite">
+  <% if (flash) { %>
+    <div class="toast toast--<%= flash.type %>" role="<%= flash.type === 'error' ? 'alert' : 'status' %>" <% if (flash.type !== 'error') { %>data-autohide="6500"<% } %>>
+      <span class="toast__icon" aria-hidden="true">
+        <% if (flash.type === 'error') { %>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 5v5M9 12.6v.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+        <% } else { %>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path class="toast__tick" d="M4.5 9.3l3 3 6-6.3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <% } %>
+      </span>
+      <p class="toast__text"><%= flash.text %></p>
+      <button class="toast__close" type="button" aria-label="Dismiss message">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+      <% if (flash.type !== 'error') { %><span class="toast__timer" aria-hidden="true"></span><% } %>
+    </div>
+  <% } %>
+</div>

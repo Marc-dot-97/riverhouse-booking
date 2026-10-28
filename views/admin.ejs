@@ -1,5 +1,5 @@
 <%- include("partials/header") %>
-<div class="page-head">
+<div class="page-head" data-reveal>
   <h1 class="display">Admin</h1>
   <a class="btn btn--gold" href="/admin/families/new">
     <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -7,7 +7,7 @@
   </a>
 </div>
 
-<section class="card side__card">
+<section class="card side__card" data-reveal>
   <h2 class="eyebrow">Families</h2>
   <div class="table-wrap">
     <table class="table">
@@ -15,15 +15,15 @@
         <tr><th scope="col">Family</th><th scope="col">Email</th><th scope="col">Role</th><th scope="col">Upcoming</th><th scope="col">Last sign-in</th><th scope="col"><span class="sr-only">Actions</span></th></tr>
       </thead>
       <tbody>
-        <% families.forEach(function (f) { %>
-          <tr class="<%= f.IsActive ? '' : 'row--inactive' %>">
+        <% families.forEach(function (f, i) { %>
+          <tr class="<%= f.IsActive ? '' : 'row--inactive' %>" data-reveal style="--i: <%= i + 1 %>;">
             <td>
               <span class="who">
                 <span class="avatar avatar--lg" style="background: <%= f.Colour %>; color: <%= f.TextColour %>; border-color: <%= f.Colour %>;"><%= f.Initials %></span>
                 <span>
                   <strong><%= f.DisplayName %></strong>
                   <% if (!f.IsActive) { %><span class="tag tag--grey">Deactivated</span><% } %>
-                  <% if (f.MustChangePassword && f.IsActive) { %><span class="tag">Temp password</span><% } %>
+                  <% if (f.MustChangePassword && f.IsActive) { %><span class="signal signal--warn" title="Still using a temporary password"><span class="signal__shape" aria-hidden="true"></span>Temp password</span><% } %>
                 </span>
               </span>
             </td>
@@ -39,33 +39,33 @@
   </div>
 </section>
 
-<section class="card side__card" id="email">
+<section class="card side__card" id="email" data-reveal>
   <div class="section-head">
     <h2 class="eyebrow">Emails</h2>
     <form method="post" action="/admin/test-email">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <button class="btn btn--outline btn--sm" type="submit">Send me a test email</button>
+      <button class="btn btn--outline btn--sm" type="submit" data-loading-text="Sending…">Send me a test email</button>
     </form>
   </div>
   <p class="muted">
     Sending mode: <strong><%= mailMode %></strong>.
-    <% if (mailMode === "log") { %>Emails are only written to the terminal and listed below as "Logged" – set MAIL_MODE in .env to send them for real.<% } %>
-    Every family with emails switched on gets a message when a stay is booked, changed or cancelled.
+    <% if (mailMode === "log") { %>Emails appear in the terminal and below as "Logged" – set MAIL_MODE in .env to send them for real.<% } %>
+    Every family with emails switched on receives an update when a stay is booked, changed or cancelled.
   </p>
   <% if (!emails.length) { %>
-    <p class="muted">No emails yet.</p>
+    <p class="muted">No emails sent yet – they'll appear here as stays are booked.</p>
   <% } else { %>
   <div class="table-wrap">
     <table class="table">
       <thead><tr><th scope="col">When</th><th scope="col">To</th><th scope="col">Subject</th><th scope="col">Status</th></tr></thead>
       <tbody>
-        <% emails.forEach(function (e) { %>
-          <tr>
+        <% emails.forEach(function (e, i) { %>
+          <tr data-reveal style="--i: <%= Math.min(i + 1, 12) %>;">
             <td class="muted nowrap"><%= new Date(e.CreatedAt).toLocaleString("en-ZA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Johannesburg" }) %></td>
             <td><%= e.ToEmail %></td>
             <td><%= e.Subject %></td>
             <td>
-              <span class="tag <%= e.Status === 'Failed' ? 'tag--red' : (e.Status === 'Sent' ? 'tag--green' : 'tag--grey') %>"><%= e.Status %></span>
+              <span class="signal <%= e.Status === 'Failed' ? 'signal--error' : (e.Status === 'Sent' ? 'signal--ok' : 'signal--warn') %>"><span class="signal__shape" aria-hidden="true"></span><%= e.Status %></span>
               <% if (e.Error) { %><br><span class="muted small"><%= e.Error %></span><% } %>
             </td>
           </tr>

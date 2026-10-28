@@ -81,7 +81,7 @@ app.use("/admin", requireLogin, requireAdmin, adminRoutes);
 app.use("/", requireLogin, calendarRoutes);
 
 app.use((req, res) => {
-  res.status(404).render("error", { title: "Not found", message: "We couldn't find that page." });
+  res.status(404).render("error", { title: "Page not found", message: "This page doesn't exist – it may have moved. The calendar is one click away." });
 });
 
 // eslint-disable-next-line no-unused-vars
@@ -90,10 +90,10 @@ app.use((err, req, res, next) => {
   const dbDown = /ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EHOSTUNREACH|PROTOCOL_CONNECTION_LOST|ER_ACCESS_DENIED_ERROR|ER_BAD_DB_ERROR|ER_NO_SUCH_TABLE/i
     .test(`${err.code} ${err.message}`);
   res.status(500).render("error", {
-    title: dbDown ? "Can't reach the database" : "Something went wrong",
+    title: dbDown ? "The calendar is resting" : "Something didn't go to plan",
     message: dbDown
-      ? "The booking database isn't reachable right now. Check the DB_ settings in .env and that you can reach the MySQL server."
-      : "Please try again. If it keeps happening, let the administrator know.",
+      ? "We can't reach the booking database right now. Please try again in a moment – your bookings are safe."
+      : "Please try again. If it keeps happening, let your house administrator know.",
   });
 });
 

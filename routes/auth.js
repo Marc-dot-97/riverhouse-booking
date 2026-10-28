@@ -19,7 +19,7 @@ router.post("/login", async (req, res, next) => {
     if (loginLocked(key)) {
       return res.status(429).render("login", {
         title: "Sign in", email,
-        error: "Too many attempts. Please wait 15 minutes and try again.",
+        error: "For your security, sign-in is paused for 15 minutes. Please try again shortly.",
       });
     }
 
@@ -29,7 +29,7 @@ router.post("/login", async (req, res, next) => {
     if (!ok) {
       recordLoginFail(key);
       return res.status(401).render("login", {
-        title: "Sign in", email, error: "That email and password don't match.",
+        title: "Sign in", email, error: "That email and password don't match. Please try again.",
       });
     }
 
@@ -45,6 +45,8 @@ router.post("/login", async (req, res, next) => {
         isAdmin: !!user.IsAdmin,
         mustChange: !!user.MustChangePassword,
       };
+      // "New since your last visit" badges compare against the previous sign-in.
+      req.session.lastSeenAt = user.LastLoginAt ? new Date(user.LastLoginAt).toISOString() : null;
       repo.touchLastLogin(user.UserId).catch(() => {});
       const target = user.MustChangePassword ? "/account" : (returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/");
       req.session.save(() => res.redirect(target));

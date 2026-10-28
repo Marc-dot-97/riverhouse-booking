@@ -155,6 +155,19 @@ failure shows in the admin page's email log.
 The sign-in is saved in the database (`app_settings`), so it works on any PC or server that uses the
 same database. If it ever stops (for example, the Outlook.com password was changed), run `npm run mail-signin` again.
 
+## Look, motion and voice
+
+* **Look:** colours and fonts follow the client's site palette (`public/css/styles.css`).
+* **Motion:** `public/css/motion.css` holds every animation and one shared set of timings
+  (`--t-instant` 120 ms, `--t-quick` 200 ms, `--t-base` 320 ms, `--t-slow` 480 ms, `--t-stagger` 45 ms).
+  Each animation has a job:
+  * **Feedback:** buttons press and show "Booking your stay…", errors give a short shake, and toasts confirm what happened (auto-hide, pause on hover).
+  * **Highlight:** a red badge counts stays booked or changed since your last visit, a dot marks them on the calendar, and your newly saved stay glows.
+  * **Meaning:** floating labels on the sign-in form.
+  * **Position and transitions:** months slide in from the side you travel to (also with ← and →), pages cross-fade, and content rises into view once.
+  * **Superimposing:** "Cancel stay" opens a dialog on desktop and a bottom sheet on phones.
+* **Voice:** copy is confident, clear and warm. Active sentences, "you", no exaggeration, and gender-neutral.
+
 ## 4. GitHub
 
 Create an **empty private** repository on github.com. Don't add a README, .gitignore or licence there,

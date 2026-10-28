@@ -17,8 +17,10 @@ function emailEveryone(type, bookingId, req, before = null) {
 }
 
 function clashMessage(clash, userId) {
-  const who = clash.UserId === userId ? "your own stay" : `the ${clash.DisplayName} stay`;
-  return `Those dates overlap ${who} (${formatRange(clash.CheckIn, clash.CheckOut)}). Please choose other dates.`;
+  const range = formatRange(clash.CheckIn, clash.CheckOut);
+  return clash.UserId === userId
+    ? `You're already at the house then (${range}). Choose dates around your existing stay.`
+    : `${clash.DisplayName} is at the house during those dates (${range}). Please choose other dates.`;
 }
 
 function canEdit(booking, user, today) {
@@ -69,8 +71,8 @@ router.post("/", async (req, res, next) => {
 
     emailEveryone("booked", result.bookingId, req);
     const nights = nightsBetween(v.checkIn, v.checkOut);
-    req.flash("success", `Booked: ${formatDay(v.checkIn)} to ${formatDay(v.checkOut)} (${plural(nights, "night")}). Everyone can now see your stay.`);
-    return res.redirect(`/?m=${values.checkIn.slice(0, 7)}`);
+    req.flash("success", `Your stay is booked: ${formatRange(v.checkIn, v.checkOut)}, ${plural(nights, "night")}. Everyone can see it on the calendar now.`);
+    return res.redirect(`/?m=${values.checkIn.slice(0, 7)}&hl=${result.bookingId}`);
   } catch (err) {
     next(err);
   }
@@ -82,7 +84,7 @@ async function loadEditable(req, res) {
   const id = Number.parseInt(req.params.id, 10);
   const booking = Number.isInteger(id) ? await repo.getBooking(id) : null;
   if (!canEdit(booking, req.session.user, todayISO())) {
-    req.flash("error", "That stay can't be changed. It may have finished, been cancelled, or belong to another family.");
+    req.flash("error", "You can't change that stay – it has finished, was cancelled, or belongs to another family.");
     res.redirect("/");
     return null;
   }
@@ -126,7 +128,7 @@ router.post("/:id", async (req, res, next) => {
       guests: values.guests, note: values.note,
     });
     if (result.notFound) {
-      req.flash("error", "That stay was cancelled or changed by someone else in the meantime.");
+      req.flash("error", "Someone cancelled or changed that stay a moment ago. Please check the calendar and try again.");
       return res.redirect("/");
     }
     if (result.clash) {
@@ -137,8 +139,8 @@ router.post("/:id", async (req, res, next) => {
     const was = formatRange(booking.CheckIn, booking.CheckOut);
     const nights = nightsBetween(v.checkIn, v.checkOut);
     const whose = booking.UserId === req.session.user.id ? "Your stay" : `The ${booking.DisplayName} stay`;
-    req.flash("success", `${whose} is now ${formatRange(v.checkIn, v.checkOut)} (${plural(nights, "night")}). It was ${was}.`);
-    return res.redirect(`/?m=${values.checkIn.slice(0, 7)}`);
+    req.flash("success", `${whose} now runs ${formatRange(v.checkIn, v.checkOut)}, ${plural(nights, "night")} – previously ${was}.`);
+    return res.redirect(`/?m=${values.checkIn.slice(0, 7)}&hl=${booking.BookingId}`);
   } catch (err) {
     next(err);
   }
@@ -156,8 +158,8 @@ router.post("/:id/cancel", async (req, res, next) => {
       isAdmin: req.session.user.isAdmin,
     });
     if (ok) emailEveryone("cancelled", id, req);
-    if (ok) req.flash("success", `Cancelled the ${booking.DisplayName} stay (${formatRange(booking.CheckIn, booking.CheckOut)}). Those dates are open again.`);
-    else req.flash("error", "That booking couldn't be cancelled (it may already be cancelled, or isn't yours).");
+    if (ok) req.flash("success", `You cancelled the ${booking.DisplayName} stay (${formatRange(booking.CheckIn, booking.CheckOut)}). Those nights are open for everyone again.`);
+    else req.flash("error", "You can't cancel that stay – it's already cancelled or belongs to another family.");
     const month = booking ? toISO(booking.CheckIn).slice(0, 7) : "";
     res.redirect(month ? `/?m=${month}` : "/");
   } catch (err) {
