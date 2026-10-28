@@ -14,7 +14,9 @@
     "create-user": "node scripts/create-user.js",
     "check-db": "node scripts/check-db.js",
     "test": "node --test",
-    "seed-test": "node scripts/seed-test-users.js"
+    "seed-test": "node scripts/seed-test-users.js",
+    "mail-signin": "node scripts/mail-signin.js",
+    "test-email": "node scripts/send-test-email.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -22,7 +24,8 @@
     "ejs": "^3.1.10",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
-    "mysql2": "^3.11.5"
+    "mysql2": "^3.11.5",
+    "nodemailer": "^10.2.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

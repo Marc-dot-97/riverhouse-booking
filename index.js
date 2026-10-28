@@ -6,12 +6,13 @@ import { fileURLToPath } from "node:url";
 import express from "express";
 import session from "express-session";
 
-import { requireLogin, csrf, flash } from "./lib/auth.js";
+import { requireLogin, requireAdmin, csrf, flash } from "./lib/auth.js";
 import authRoutes from "./routes/auth.js";
 import calendarRoutes from "./routes/calendar.js";
 import bookingRoutes from "./routes/bookings.js";
 import accountRoutes from "./routes/account.js";
 import icsRoutes from "./routes/ics.js";
+import adminRoutes from "./routes/admin.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -74,9 +75,10 @@ app.use((req, res, next) => {
 });
 
 app.use(authRoutes);
-app.use("/", requireLogin, calendarRoutes);
 app.use("/bookings", requireLogin, bookingRoutes);
 app.use("/account", requireLogin, accountRoutes);
+app.use("/admin", requireLogin, requireAdmin, adminRoutes);
+app.use("/", requireLogin, calendarRoutes);
 
 app.use((req, res) => {
   res.status(404).render("error", { title: "Not found", message: "We couldn't find that page." });

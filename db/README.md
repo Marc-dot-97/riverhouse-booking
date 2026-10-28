@@ -6,8 +6,9 @@ Run these **in order**, connected to the MySQL server as **root** (or another ad
 |---|------|--------------|
 | 1 | `001_create_database_and_user.sql` | Creates the `riverhouse_booking` database and the `riverhouse_app` login the website uses. **Edit the password placeholder first.** |
 | 2 | `002_tables.sql` | Creates the `users`, `bookings` and `booking_lock` tables. |
+| 3 | `003_admin_and_email.sql` | Admin page + email: adds `MustChangePassword` and `EmailNotifications` to `users`, and the `email_log` and `app_settings` tables. |
 
-Both scripts are safe to re-run. You need **MySQL 8.0.16 or newer** (`SELECT VERSION();`).
+All scripts are safe to re-run. You need **MySQL 8.0.16 or newer** (`SELECT VERSION();`).
 
 **MySQL Workbench:** File → Open SQL Script → pick the file → press the lightning bolt
 (**Execute all**, `Ctrl+Shift+Enter`). Then do the same for the next file.
@@ -17,6 +18,7 @@ Both scripts are safe to re-run. You need **MySQL 8.0.16 or newer** (`SELECT VER
 ```powershell
 mysql -h 10.10.1.4 -P 3306 -u root -p -e "source db/001_create_database_and_user.sql"
 mysql -h 10.10.1.4 -P 3306 -u root -p -e "source db/002_tables.sql"
+mysql -h 10.10.1.4 -P 3306 -u root -p -e "source db/003_admin_and_email.sql"
 ```
 
 (PowerShell doesn't support `mysql ... < file.sql`, so use `-e "source ..."` as shown.)

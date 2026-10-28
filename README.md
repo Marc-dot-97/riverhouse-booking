@@ -95,6 +95,66 @@ You can also start it with the debugger from VS Code: Run and Debug → **Run Ri
 If `npm run check-db` fails, it tells you what's wrong: a wrong password, a missing database (run 001),
 missing tables (run 002), or no network route to port 3306.
 
+## 3b. Admin page and emails (after the first install)
+
+**Database update (once):** in MySQL Workbench, connected to `10.10.1.4` as root, open and run
+`db/003_admin_and_email.sql`. It adds two columns to `users` and the `email_log` and `app_settings` tables.
+It is safe to run again.
+
+**Admin page:** signed in as an admin, click **Admin** in the menu.
+
+* **Add a family:** fill in the name, email, initials and colour. The app makes a temporary password,
+  shows it once, and (optionally) emails it. The family must choose their own password at first sign-in.
+* **Edit:** change the name, initials, colour or email; make someone an admin; switch their emails off;
+  or untick **Active** to stop them signing in (their stays stay on the calendar).
+* **Reset password:** gives a new temporary password (shown once, optionally emailed).
+* **New Outlook link:** if someone's private calendar link was shared by mistake.
+* **Emails:** the last 30 emails with Sent / Failed / Logged, and a "Send me a test email" button.
+
+Safety rules: you can't remove your own admin rights or deactivate yourself, and there is always at least one active admin.
+
+### Email from Leopardcreek@outlook.com
+
+Every family with emails switched on gets a message when a stay is **booked, changed or cancelled**
+(owners can switch this off under My account). If email isn't working, bookings still save; the
+failure shows in the admin page's email log.
+
+`MAIL_MODE` in `.env` controls sending:
+
+| MAIL_MODE | What happens |
+|-----------|--------------|
+| `log` (default) | Nothing is sent. Emails are printed in the terminal and listed as "Logged". Use for development. |
+| `graph` (recommended) | Sends through Microsoft Graph as Leopardcreek@outlook.com, using a Microsoft sign-in (no password stored). |
+| `oauth2` | Sends through Outlook.com SMTP with a Microsoft sign-in. Needs the SMTP.Send permission, which the portal often doesn't offer for apps that allow personal accounts. |
+| `smtp` | Sends with a username + password. Microsoft is retiring password sign-in for Outlook.com, so use this only as a last resort. |
+
+**Setting up `graph` (one time, about 10 minutes):**
+
+1. Go to https://entra.microsoft.com, signed in with your **Optimum** admin account → **App registrations** → **New registration**.
+   * Name: `Riverhouse booking mail`
+   * Supported account types: **Accounts in any organizational directory and personal Microsoft accounts**
+   * Redirect URI: leave empty → **Register**.
+2. Copy the **Application (client) ID**.
+3. **Authentication** → **Advanced settings** → **Allow public client flows** = **Yes** → Save.
+4. **API permissions** → **Add a permission** → **Microsoft Graph** → **Delegated permissions**:
+   * type `Mail.Send` in the filter → tick **Mail.Send**
+   * type `offline_access` → tick **offline_access** (under OpenId permissions)
+   * → **Add permissions**. (No admin consent is needed - Leopardcreek@outlook.com approves it when signing in.)
+5. In `.env` set:
+   ```
+   MAIL_MODE=graph
+   SMTP_USER=Leopardcreek@outlook.com
+   MAIL_FROM="Riverhouse" <Leopardcreek@outlook.com>
+   MS_CLIENT_ID=<the Application (client) ID>
+   MS_TENANT=consumers
+   ```
+6. In the VS Code terminal run `npm run mail-signin`. It prints a web address and a code.
+   Open the address, enter the code, and sign in as **Leopardcreek@outlook.com** (not your work account). Then accept.
+7. Test it: `npm run test-email -- marc@optimumgroup.co.za`, or use **Admin → Send me a test email**.
+
+The sign-in is saved in the database (`app_settings`), so it works on any PC or server that uses the
+same database. If it ever stops (for example, the Outlook.com password was changed), run `npm run mail-signin` again.
+
 ## 4. GitHub
 
 Create an **empty private** repository on github.com. Don't add a README, .gitignore or licence there,
@@ -139,12 +199,10 @@ New Outlook and Outlook on the web download the feed from Microsoft's cloud. The
 | `views/` | EJS pages + `partials/` |
 | `public/` | CSS, JS, PWA manifest, service worker, icons |
 | `db/` | MySQL scripts to run in MySQL Workbench |
-| `scripts/` | `create-user`, `check-db` |
+| `scripts/` | `create-user`, `check-db`, `seed-test`, `mail-signin`, `send-test-email` (npm run test-email) |
 | `test/` | Unit tests (`npm test`) |
 
 ## Roadmap
 
-* Admin page (add or reset owners from the browser instead of the terminal)
-* Email to all owners when a stay is booked or cancelled
 * Two-way Outlook sync (Microsoft Graph). This needs an Entra ID app registration in the client's Microsoft 365 tenant.
 * Deploy to Dev/QA (`10.10.1.4`), then PROD

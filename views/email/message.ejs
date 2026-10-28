@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title><%= subject %></title></head>
+<body style="margin:0; padding:0; background:#F9F0EC;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F9F0EC;">
+  <tr><td align="center" style="padding:24px 12px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px; background:#FFFFFF; border-radius:14px; overflow:hidden; font-family:Segoe UI, Arial, sans-serif; color:#212934;">
+      <tr><td style="background:#212934; padding:20px 28px;">
+        <div style="font-family:Georgia, 'Times New Roman', serif; font-size:24px; color:#F9F0EC;"><%= houseName %></div>
+        <div style="font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#CCAB76; margin-top:4px;">Shared house calendar</div>
+      </td></tr>
+      <tr><td style="padding:28px;">
+        <p style="margin:0 0 6px; font-size:15px;">Hi <%= greetingName %>,</p>
+        <h1 style="margin:0 0 16px; font-family:Georgia, 'Times New Roman', serif; font-weight:normal; font-size:24px; line-height:1.25;"><%= heading %></h1>
+        <% lines.forEach(function (l) { %>
+          <p style="margin:0 0 12px; font-size:15px; line-height:1.5;"><%= l %></p>
+        <% }) %>
+        <% if (details.length) { %>
+        <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%; margin:8px 0 20px; border:1px solid #E7E4E2; border-radius:10px;">
+          <% details.forEach(function (d, i) { %>
+          <tr>
+            <td style="padding:10px 14px; font-size:12px; letter-spacing:1px; text-transform:uppercase; color:#7A5A2F; width:120px; <%= i ? 'border-top:1px solid #EFEBE8;' : '' %>"><%= d[0] %></td>
+            <td style="padding:10px 14px; font-size:15px; <%= i ? 'border-top:1px solid #EFEBE8;' : '' %> <%= d[2] ? 'font-family:Consolas, monospace;' : '' %>"><%= d[1] %></td>
+          </tr>
+          <% }) %>
+        </table>
+        <% } %>
+        <% if (buttonUrl) { %>
+        <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:#B4975A; border-radius:24px;">
+          <a href="<%= buttonUrl %>" style="display:inline-block; padding:12px 24px; color:#212934; text-decoration:none; font-size:13px; letter-spacing:2px; text-transform:uppercase; font-weight:600;"><%= buttonText %></a>
+        </td></tr></table>
+        <% } %>
+      </td></tr>
+      <tr><td style="padding:16px 28px 24px; font-size:12px; color:#5F6A73; border-top:1px solid #EFEBE8;">
+        <%= footer %>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>

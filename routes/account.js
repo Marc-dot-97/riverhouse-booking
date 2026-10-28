@@ -37,10 +37,24 @@ router.post("/password", async (req, res, next) => {
     if (!(await bcrypt.compare(current, user.PasswordHash))) pwError = "Your current password isn't right.";
     else if (next1.length < 10) pwError = "The new password must be at least 10 characters.";
     else if (next1 !== next2) pwError = "The two new passwords don't match.";
+    else if (next1 === current) pwError = "Please choose a password that's different from the current one.";
     if (pwError) return render(req, res.status(400), { pwError });
 
-    await repo.updatePasswordHash(user.UserId, await bcrypt.hash(next1, 12));
-    req.flash("success", "Your password has been changed.");
+    const wasTemporary = !!user.MustChangePassword;
+    await repo.updatePasswordHash(user.UserId, await bcrypt.hash(next1, 12)); // also clears MustChangePassword
+    req.session.user.mustChange = false;
+    req.flash("success", wasTemporary ? "Thanks - your new password is saved. Welcome to the calendar!" : "Your password has been changed.");
+    res.redirect(wasTemporary ? "/" : "/account");
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post("/notifications", async (req, res, next) => {
+  try {
+    const on = req.body.emailNotifications === "on";
+    await repo.setEmailNotifications(req.session.user.id, on);
+    req.flash("success", on ? "You'll get an email when stays are booked, changed or cancelled." : "Booking emails are switched off for you.");
     res.redirect("/account");
   } catch (err) {
     next(err);

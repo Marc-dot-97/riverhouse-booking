@@ -25,6 +25,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // 2b. Copy plain text (temporary password on the admin page)
+  document.querySelectorAll("[data-copy-text]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const el = document.querySelector(btn.dataset.copyText);
+      if (!el) return;
+      try { await navigator.clipboard.writeText(el.textContent.trim()); } catch { /* ignore */ }
+      const old = btn.textContent;
+      btn.textContent = "Copied";
+      setTimeout(() => { btn.textContent = old; }, 1800);
+    });
+  });
+
+  // 2c. Admin colour picker: "own colour" chip updates its radio button
+  document.querySelectorAll("input[type=color][data-sync]").forEach((picker) => {
+    const radio = document.querySelector(picker.dataset.sync);
+    const chip = picker.parentElement;
+    const apply = () => {
+      radio.value = picker.value;
+      radio.checked = true;
+      chip.style.background = picker.value;
+    };
+    picker.addEventListener("input", apply);
+    if (radio.checked) chip.style.background = picker.value;
+  });
+
   // 3. Booking form: keep "Leave" after "Arrive" and show the number of nights
   const checkIn = document.getElementById("checkIn");
   const checkOut = document.getElementById("checkOut");

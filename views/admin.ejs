@@ -1,0 +1,78 @@
+<%- include("partials/header") %>
+<div class="page-head">
+  <h1 class="display">Admin</h1>
+  <a class="btn btn--gold" href="/admin/families/new">
+    <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    Add a family
+  </a>
+</div>
+
+<section class="card side__card">
+  <h2 class="eyebrow">Families</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th scope="col">Family</th><th scope="col">Email</th><th scope="col">Role</th><th scope="col">Upcoming</th><th scope="col">Last sign-in</th><th scope="col"><span class="sr-only">Actions</span></th></tr>
+      </thead>
+      <tbody>
+        <% families.forEach(function (f) { %>
+          <tr class="<%= f.IsActive ? '' : 'row--inactive' %>">
+            <td>
+              <span class="who">
+                <span class="avatar avatar--lg" style="background: <%= f.Colour %>; color: <%= f.TextColour %>; border-color: <%= f.Colour %>;"><%= f.Initials %></span>
+                <span>
+                  <strong><%= f.DisplayName %></strong>
+                  <% if (!f.IsActive) { %><span class="tag tag--grey">Deactivated</span><% } %>
+                  <% if (f.MustChangePassword && f.IsActive) { %><span class="tag">Temp password</span><% } %>
+                </span>
+              </span>
+            </td>
+            <td><%= f.Email %><% if (!f.EmailNotifications) { %><br><span class="muted">Emails off</span><% } %></td>
+            <td><%= f.IsAdmin ? "Admin" : "Owner" %></td>
+            <td><%= f.UpcomingStays %></td>
+            <td class="muted"><%= f.LastLoginAt ? new Date(f.LastLoginAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Johannesburg" }) : "Never" %></td>
+            <td><a class="btn btn--outline btn--sm" href="/admin/families/<%= f.UserId %>">Edit</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card side__card" id="email">
+  <div class="section-head">
+    <h2 class="eyebrow">Emails</h2>
+    <form method="post" action="/admin/test-email">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button class="btn btn--outline btn--sm" type="submit">Send me a test email</button>
+    </form>
+  </div>
+  <p class="muted">
+    Sending mode: <strong><%= mailMode %></strong>.
+    <% if (mailMode === "log") { %>Emails are only written to the terminal and listed below as "Logged" – set MAIL_MODE in .env to send them for real.<% } %>
+    Every family with emails switched on gets a message when a stay is booked, changed or cancelled.
+  </p>
+  <% if (!emails.length) { %>
+    <p class="muted">No emails yet.</p>
+  <% } else { %>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">When</th><th scope="col">To</th><th scope="col">Subject</th><th scope="col">Status</th></tr></thead>
+      <tbody>
+        <% emails.forEach(function (e) { %>
+          <tr>
+            <td class="muted nowrap"><%= new Date(e.CreatedAt).toLocaleString("en-ZA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Johannesburg" }) %></td>
+            <td><%= e.ToEmail %></td>
+            <td><%= e.Subject %></td>
+            <td>
+              <span class="tag <%= e.Status === 'Failed' ? 'tag--red' : (e.Status === 'Sent' ? 'tag--green' : 'tag--grey') %>"><%= e.Status %></span>
+              <% if (e.Error) { %><br><span class="muted small"><%= e.Error %></span><% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</section>
+<%- include("partials/footer") %>

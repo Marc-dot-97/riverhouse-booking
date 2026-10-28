@@ -43,9 +43,11 @@ router.post("/login", async (req, res, next) => {
         name: user.DisplayName,
         initials: user.Initials,
         isAdmin: !!user.IsAdmin,
+        mustChange: !!user.MustChangePassword,
       };
       repo.touchLastLogin(user.UserId).catch(() => {});
-      req.session.save(() => res.redirect(returnTo.startsWith("/") ? returnTo : "/"));
+      const target = user.MustChangePassword ? "/account" : (returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/");
+      req.session.save(() => res.redirect(target));
     });
   } catch (err) {
     next(err);

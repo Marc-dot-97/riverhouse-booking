@@ -1,0 +1,97 @@
+<%- include("partials/header") %>
+<div class="narrow">
+  <a href="/admin" class="back-link">
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M12 4l-6 6 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Back to admin
+  </a>
+  <h1 class="display"><%= family ? family.DisplayName : "Add a family" %></h1>
+
+  <% if (typeof oneTime !== "undefined" && oneTime) { %>
+    <div class="card onetime" role="status">
+      <h2 class="eyebrow"><%= oneTime.isNew ? "Login details" : "New temporary password" %></h2>
+      <p>
+        <% if (oneTime.emailed) { %>
+          These were emailed to <strong><%= oneTime.email %></strong>. They're shown here once, in case you'd rather pass them on yourself.
+        <% } else { %>
+          Give these to <strong><%= oneTime.name %></strong>. They're only shown <strong>once</strong>; you can always reset the password again.
+        <% } %>
+      </p>
+      <dl class="creds">
+        <dt>Email</dt><dd><%= oneTime.email %></dd>
+        <dt>Temporary password</dt><dd><code id="tempPw"><%= oneTime.password %></code> <button class="btn btn--outline btn--sm" type="button" data-copy-text="#tempPw">Copy</button></dd>
+      </dl>
+      <p class="muted">They'll be asked to choose their own password when they first sign in.</p>
+    </div>
+  <% } %>
+
+  <% if (error) { %><div class="alert alert--error" role="alert"><%= error %></div><% } %>
+
+  <form class="card form" method="post" action="<%= family ? '/admin/families/' + family.UserId : '/admin/families' %>" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="field">
+      <label for="displayName">Name on the calendar</label>
+      <input id="displayName" name="displayName" type="text" maxlength="100" required placeholder="e.g. Botha family" value="<%= values.displayName %>">
+    </div>
+    <div class="form__row">
+      <div class="field">
+        <label for="email">Email (used to sign in)</label>
+        <input id="email" name="email" type="email" required value="<%= values.email %>">
+      </div>
+      <div class="field">
+        <label for="initials">Initials on the bar</label>
+        <input id="initials" name="initials" type="text" maxlength="3" required placeholder="BO" value="<%= values.initials %>">
+      </div>
+    </div>
+
+    <fieldset class="field swatches">
+      <legend>Calendar colour</legend>
+      <div class="swatches__list">
+        <% palette.forEach(function (p, i) { %>
+          <label class="swatch" title="<%= p.name %>">
+            <input type="radio" name="colour" value="<%= p.bg %>" <%= values.colour && values.colour.toLowerCase() === p.bg.toLowerCase() ? "checked" : "" %>>
+            <span class="swatch__chip" style="background: <%= p.bg %>; color: <%= p.fg %>;"><%= values.initials || "AB" %></span>
+            <span class="sr-only"><%= p.name %></span>
+          </label>
+        <% }) %>
+        <% const custom = values.colour && !palette.some(function (p) { return p.bg.toLowerCase() === values.colour.toLowerCase(); }); %>
+        <label class="swatch" title="Own colour">
+          <input type="radio" name="colour" value="<%= custom ? values.colour : '#2B4C7E' %>" id="customRadio" <%= custom ? "checked" : "" %>>
+          <span class="swatch__chip swatch__chip--custom"><input type="color" aria-label="Pick your own colour" value="<%= custom ? values.colour : '#2B4C7E' %>" data-sync="#customRadio"></span>
+        </label>
+      </div>
+    </fieldset>
+
+    <div class="checks">
+      <label class="check"><input type="checkbox" name="isAdmin" <%= values.isAdmin ? "checked" : "" %>> Admin (can open this page and change any stay)</label>
+      <label class="check"><input type="checkbox" name="emailNotifications" <%= values.emailNotifications ? "checked" : "" %>> Email them when stays are booked, changed or cancelled</label>
+      <% if (family) { %>
+        <label class="check"><input type="checkbox" name="isActive" <%= values.isActive ? "checked" : "" %>> Active (untick to stop them signing in; their stays remain)</label>
+      <% } else { %>
+        <label class="check"><input type="checkbox" name="sendEmail" <%= values.sendEmail ? "checked" : "" %>> Email them their login details now</label>
+      <% } %>
+    </div>
+
+    <button class="btn btn--gold btn--block" type="submit"><%= family ? "Save changes" : "Add family" %></button>
+  </form>
+
+  <% if (family) { %>
+    <section class="card side__card">
+      <h2 class="eyebrow">Password</h2>
+      <p>Forgotten password? Give them a new temporary one. Their old password stops working straight away.</p>
+      <form class="form--inline" method="post" action="/admin/families/<%= family.UserId %>/reset-password">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label class="check"><input type="checkbox" name="sendEmail" <%= mailMode !== "log" ? "checked" : "" %>> Email it to <%= family.Email %></label>
+        <button class="btn btn--navy btn--sm" type="submit">Reset password</button>
+      </form>
+    </section>
+    <section class="card side__card">
+      <h2 class="eyebrow">Outlook calendar link</h2>
+      <p>If their private Outlook link was shared by mistake, make a new one. The old link stops working; they'll need to subscribe again with the new link from My account.</p>
+      <form method="post" action="/admin/families/<%= family.UserId %>/new-outlook-link">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="btn btn--outline btn--sm" type="submit">Make a new Outlook link</button>
+      </form>
+    </section>
+  <% } %>
+</div>
+<%- include("partials/footer") %>

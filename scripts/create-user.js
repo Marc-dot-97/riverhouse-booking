@@ -6,12 +6,9 @@ import { stdin as input, stdout as output } from "node:process";
 import bcrypt from "bcryptjs";
 import * as repo from "../lib/repo.js";
 import { getPool } from "../lib/db.js";
+import { nextFreeColour } from "../lib/palette.js";
 
-// Calendar colours (background, text) - taken from the site's palette.
-const PALETTE = [
-  ["#212934", "#FFFFFF"], ["#CCAB76", "#212934"], ["#4E6B57", "#FFFFFF"], ["#9A5238", "#FFFFFF"],
-  ["#A9BDD0", "#212934"], ["#7A5A2F", "#FFFFFF"], ["#5B6E8C", "#FFFFFF"], ["#D9C3A5", "#212934"],
-];
+
 
 // Works both when you type the answers and when they're piped in.
 const rl = readline.createInterface({ input, output, terminal: Boolean(input.isTTY) });
@@ -39,7 +36,7 @@ try {
   if (await repo.findUserByEmail(email)) throw new Error("A user with that email already exists.");
 
   const { n } = await repo.countUsers();
-  const [colour, textColour] = PALETTE[n % PALETTE.length];
+  const { bg: colour, fg: textColour } = nextFreeColour(await repo.usedColours(), n);
   const userId = await repo.createUser({
     email, displayName, initials, colour, textColour,
     passwordHash: await bcrypt.hash(password, 12), isAdmin,

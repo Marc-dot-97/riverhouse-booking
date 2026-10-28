@@ -2,10 +2,19 @@ import express from "express";
 import * as repo from "../lib/repo.js";
 import { todayISO, nightsBetween, formatRange, formatDay, addDays, toISO, parseISO } from "../lib/dates.js";
 import { readStayForm, validateStay } from "../lib/validate.js";
+import { notifyStay } from "../lib/notify.js";
 
 const router = express.Router();
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+/** Emails everyone in the background - the page doesn't wait, and a mail problem never blocks a booking. */
+function emailEveryone(type, bookingId, req, before = null) {
+  const actor = { id: req.session.user.id, name: req.session.user.name };
+  repo.getBooking(bookingId)
+    .then((booking) => booking && notifyStay({ type, booking, before, actor }))
+    .catch((err) => console.error(`✖ Could not send "${type}" emails for booking ${bookingId}:`, err.message));
+}
 
 function clashMessage(clash, userId) {
   const who = clash.UserId === userId ? "your own stay" : `the ${clash.DisplayName} stay`;
@@ -58,6 +67,7 @@ router.post("/", async (req, res, next) => {
       return renderForm(res, { values, status: 409, error: clashMessage(result.clash, req.session.user.id) });
     }
 
+    emailEveryone("booked", result.bookingId, req);
     const nights = nightsBetween(v.checkIn, v.checkOut);
     req.flash("success", `Booked: ${formatDay(v.checkIn)} to ${formatDay(v.checkOut)} (${plural(nights, "night")}). Everyone can now see your stay.`);
     return res.redirect(`/?m=${values.checkIn.slice(0, 7)}`);
@@ -123,6 +133,7 @@ router.post("/:id", async (req, res, next) => {
       return renderForm(res, { booking, values, status: 409, error: clashMessage(result.clash, req.session.user.id) });
     }
 
+    emailEveryone("changed", booking.BookingId, req, { CheckIn: booking.CheckIn, CheckOut: booking.CheckOut });
     const was = formatRange(booking.CheckIn, booking.CheckOut);
     const nights = nightsBetween(v.checkIn, v.checkOut);
     const whose = booking.UserId === req.session.user.id ? "Your stay" : `The ${booking.DisplayName} stay`;
@@ -144,6 +155,7 @@ router.post("/:id/cancel", async (req, res, next) => {
       byUserId: req.session.user.id,
       isAdmin: req.session.user.isAdmin,
     });
+    if (ok) emailEveryone("cancelled", id, req);
     if (ok) req.flash("success", `Cancelled the ${booking.DisplayName} stay (${formatRange(booking.CheckIn, booking.CheckOut)}). Those dates are open again.`);
     else req.flash("error", "That booking couldn't be cancelled (it may already be cancelled, or isn't yours).");
     const month = booking ? toISO(booking.CheckIn).slice(0, 7) : "";
