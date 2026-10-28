@@ -12,12 +12,14 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
 // ---------- Show and hide: reveal content once, bottom-to-top ----------
+// This class is what lets motion.css hide content until it animates in.
+// It is set here (not in the page), so a stale or blocked script can never hide anything.
+document.documentElement.classList.add("reveal-on");
+
 function setUpReveal() {
   const items = $$("[data-reveal]");
-  if (!("IntersectionObserver" in window)) {
-    items.forEach((el) => el.classList.add("is-revealed"));
-    return;
-  }
+  const showAll = () => items.forEach((el) => el.classList.add("is-revealed"));
+  if (!("IntersectionObserver" in window)) return showAll();
   // Items already on screen get a gentle stagger in reading order.
   let order = 0;
   const onScreen = (el) => el.getBoundingClientRect().top < window.innerHeight;
@@ -32,6 +34,8 @@ function setUpReveal() {
     });
   }, { rootMargin: "0px 0px -6% 0px", threshold: 0.05 });
   items.forEach((el) => io.observe(el));
+  // Safety net: anything on screen that still hasn't appeared after 1.2s is shown anyway.
+  setTimeout(() => items.forEach((el) => { if (onScreen(el)) el.classList.add("is-revealed"); }), 1200);
 }
 
 // ---------- Notifications: toasts ----------

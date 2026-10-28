@@ -1,6 +1,7 @@
 // Service worker: makes the app installable and keeps the look working when offline.
-// Pages always come from the network first (bookings must be live); static files are cached.
-const VERSION = "rh-v2";
+// Everything comes from the network first (bookings must be live, updates apply at once);
+// the cache is only used when you're offline.
+const VERSION = "rh-v3";
 const STATIC = [
   "/css/styles.css",
   "/css/motion.css",
@@ -35,14 +36,14 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (STATIC.includes(url.pathname)) {
+    // Network first, so a new version of the app is used straight away; the cache is for offline only.
     event.respondWith(
-      caches.match(req).then((hit) => {
-        const live = fetch(req).then((res) => {
-          if (res.ok) caches.open(VERSION).then((c) => c.put(req, res.clone()));
+      fetch(req)
+        .then((res) => {
+          if (res.ok) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); }
           return res;
-        }).catch(() => hit);
-        return hit || live;
-      }),
+        })
+        .catch(() => caches.match(req)),
     );
   }
 });

@@ -24,14 +24,10 @@
 
 /* ---------------------------------------------------------------------
    TRANSITIONS – views
-   Page-to-page cross-fade (Chrome/Edge). The menu stays still so you keep
-   your bearings; only the content changes.
+   Each page's content rises into view (see "Show and hide" below), so
+   moving between pages feels continuous without browser-level page
+   transitions (those threw "opt-in disabled" errors after form posts).
    --------------------------------------------------------------------- */
-@view-transition { navigation: auto; }
-.sidebar { view-transition-name: sidebar; }
-.toasts { view-transition-name: toasts; }
-::view-transition-old(root) { animation: rh-fade-out var(--t-quick) var(--ease-in) both; }
-::view-transition-new(root) { animation: rh-fade-in var(--t-base) var(--ease-out) both; }
 
 /* Month to month: the calendar slides in from the side you travelled to. */
 .js[data-dir="forward"] .cal__card { animation: rh-from-right var(--t-slow) var(--ease-out) both; }
@@ -42,10 +38,11 @@
 /* ---------------------------------------------------------------------
    SHOW AND HIDE – content appears bottom-to-top with a slight delay,
    once only. Elements below the fold wait until you scroll to them.
-   (Only when JavaScript runs, so nothing is ever hidden by mistake.)
+   Hidden only once app.js has switched on "reveal-on" – so an old or
+   missing script can never leave content invisible.
    --------------------------------------------------------------------- */
-.js [data-reveal] { opacity: 0; transform: translateY(14px); }
-.js [data-reveal].is-revealed {
+.reveal-on [data-reveal] { opacity: 0; transform: translateY(14px); }
+.reveal-on [data-reveal].is-revealed {
   opacity: 1;
   transform: none;
   transition:
@@ -53,7 +50,7 @@
     transform var(--t-base) var(--ease-out) calc(var(--i, 0) * var(--t-stagger));
 }
 /* A month slide already moves the calendar – don't move it twice. */
-.js[data-dir] .cal__card[data-reveal] { opacity: 1; transform: none; }
+.reveal-on[data-dir] .cal__card[data-reveal] { opacity: 1; transform: none; }
 
 /* Calendar: days settle row by row, then each stay's bar draws itself
    left-to-right, so you see where a stay starts and where it ends. */
