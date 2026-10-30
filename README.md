@@ -186,6 +186,12 @@ same database. If it ever stops (for example, the Outlook.com password was chang
 * **Android APK:** see `android/README.md`. Once `public/downloads/riverhouse.apk` exists on the server, the sign-in page
   and My account show **Get the Android app** on Android phones.
 
+## Production (PROD server 10.10.1.2)
+
+See **`deploy/README.md`**. In short: run db 001–005 on the PROD MySQL, run `deploy\install.ps1` and then
+`deploy\iis-setup.ps1` on the server, and use `deploy\update.ps1` for every release after that.
+In production, sessions are stored in MySQL (`db/005_sessions.sql`), so restarts don't sign anyone out.
+
 ## 4. GitHub
 
 Create an **empty private** repository on github.com. Don't add a README, .gitignore or licence there,

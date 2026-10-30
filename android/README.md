@@ -29,8 +29,32 @@ certificate, and opening `https://rh-bookings.primebridge.co.za/manifest.webmani
    ```
    Restart the site. Check that https://rh-bookings.primebridge.co.za/.well-known/assetlinks.json shows it.
    (This proves to Android that the app and the website belong together. Without it, the app shows a browser bar.)
-5. Rename the `.apk` to `riverhouse.apk` and put it in `public/downloads/` on the server.
+5. Rename the `.apk` to `riverhouse.apk` and put it on the server at `C:\\Apps\\riverhouse-booking\\public\\downloads\\riverhouse.apk`.
    The sign-in page and My account then show a **Get the Android app** button.
+
+## Option C – Android Studio (you have it installed)
+
+1. **One-time Android Studio setup:** open Android Studio once and finish the setup wizard. It installs the Android SDK to
+   `C:\Users\<you>\AppData\Local\Android\Sdk`.
+2. **Generate the project** (VS Code terminal, after the site is live):
+   ```powershell
+   npm install -g @bubblewrap/cli
+   cd C:\Dev\riverhouse-booking\android
+   bubblewrap init --manifest https://rh-bookings.primebridge.co.za/manifest.webmanifest
+   ```
+   * When asked for the JDK, let Bubblewrap install its own JDK 17. Android Studio's built-in JDK is newer than Bubblewrap expects.
+   * When asked for the Android SDK, point it to `C:\Users\<you>\AppData\Local\Android\Sdk`.
+   * Accept the values from `twa-manifest.json` (package `za.co.primebridge.rhbookings`).
+   * Let it **create a signing key**: file `riverhouse-upload.keystore`, alias `riverhouse`. Store both passwords in your password manager.
+3. **Build in Android Studio:** File → Open → `C:\Dev\riverhouse-booking\android`, then let Gradle sync.
+   **Build → Generate Signed App Bundle / APK → APK**, choose `riverhouse-upload.keystore`, then **release**.
+   The APK lands in `android\app\release\app-release.apk`.
+   Or skip Android Studio's menus and run `bubblewrap build` in the same folder.
+4. **Fingerprint for the website:** `bubblewrap fingerprint list`, or in PowerShell:
+   `& "C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe" -list -v -keystore riverhouse-upload.keystore -alias riverhouse`.
+   Copy the **SHA256** line into the server's `.env` as `ANDROID_CERT_SHA256=`, then restart the service.
+5. **Publish the APK:** copy it to the server as `C:\Apps\riverhouse-booking\public\downloads\riverhouse.apk`.
+   `update.ps1` never deletes it. The **Get the Android app** button appears on Android phones.
 
 ## Option B – Bubblewrap CLI (from your PC, VS Code terminal)
 

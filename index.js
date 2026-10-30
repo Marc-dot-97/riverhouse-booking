@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
 import session from "express-session";
+import { MySqlSessionStore } from "./lib/session-store.js";
 
 import { requireLogin, requireAdmin, requireWriter, csrf, flash } from "./lib/auth.js";
 import authRoutes from "./routes/auth.js";
@@ -83,8 +84,13 @@ app.use("/ics", icsRoutes);
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 
+// Sessions live in MySQL on the servers (survive restarts); in memory on your PC unless SESSION_STORE=mysql.
+const useDbSessions = isProd || process.env.SESSION_STORE === "mysql";
+
 app.use(session({
   name: "rh.sid",
+  store: useDbSessions ? new MySqlSessionStore() : undefined,
+  proxy: isProd, // behind IIS: trust X-Forwarded-Proto for the secure cookie
   secret: process.env.SESSION_SECRET || "dev-only-" + Math.random().toString(36).slice(2),
   resave: false,
   saveUninitialized: false,
@@ -127,6 +133,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Riverhouse booking running on http://localhost:${port}`);
+// On the servers HOST=127.0.0.1, so only IIS (on the same machine) can reach the app directly.
+const host = process.env.HOST || "0.0.0.0";
+app.listen(port, host, () => {
+  console.log(`Riverhouse booking running on http://${host === "0.0.0.0" ? "localhost" : host}:${port}`
+    + `${isProd ? " (production)" : ""}${useDbSessions ? " · sessions in MySQL" : ""}`);
 });
