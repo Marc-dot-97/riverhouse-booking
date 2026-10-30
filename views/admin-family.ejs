@@ -63,6 +63,7 @@
 
     <div class="checks">
       <label class="check"><input type="checkbox" name="isAdmin" <%= values.isAdmin ? "checked" : "" %>> Admin – can open this page and change any stay</label>
+      <label class="check"><input type="checkbox" name="isReadOnly" <%= values.isReadOnly ? "checked" : "" %>> View only – can see the calendar and who's going, but can't book, change or cancel</label>
       <label class="check"><input type="checkbox" name="emailNotifications" <%= values.emailNotifications ? "checked" : "" %>> Email them whenever a stay is booked, changed or cancelled</label>
       <% if (family) { %>
         <label class="check"><input type="checkbox" name="isActive" <%= values.isActive ? "checked" : "" %>> Active – untick to stop them signing in; their stays remain</label>

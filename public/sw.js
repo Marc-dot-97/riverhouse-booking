@@ -1,7 +1,7 @@
 // Service worker: makes the app installable and keeps the look working when offline.
 // Everything comes from the network first (bookings must be live, updates apply at once);
 // the cache is only used when you're offline.
-const VERSION = "rh-v3";
+const VERSION = "rh-v4";
 const STATIC = [
   "/css/styles.css",
   "/css/motion.css",

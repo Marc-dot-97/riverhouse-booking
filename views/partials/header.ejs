@@ -29,15 +29,23 @@
       </a>
       <% } %>
     </nav>
+    <% if (!user.readOnly) { %>
     <a href="/bookings/new" class="btn btn--gold sidebar__book" <% if (active === "book") { %>aria-current="page"<% } %>>
       <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       Book a stay
     </a>
+    <% } else { %>
+    <p class="viewonly-note"><span class="signal signal--ok"><span class="signal__shape" aria-hidden="true"></span>View only</span> You can follow every stay; booking is for the families.</p>
+    <% } %>
+    <button class="btn btn--outline-light sidebar__install" type="button" data-install hidden>
+      <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 2.5v9M5.5 8L9 11.5 12.5 8M3 14.5h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Install the app
+    </button>
     <div class="sidebar__user">
       <span class="avatar"><%= user.initials %></span>
       <span class="sidebar__who">
         <span><%= user.name %></span>
-        <span class="muted-light"><%= user.isAdmin ? "Admin" : "Owner" %></span>
+        <span class="muted-light"><%= user.isAdmin ? "Admin" : (user.readOnly ? "View only" : "Owner") %></span>
       </span>
       <form method="post" action="/logout">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">

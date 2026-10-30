@@ -168,6 +168,24 @@ same database. If it ever stops (for example, the Outlook.com password was chang
   * **Superimposing:** "Cancel stay" opens a dialog on desktop and a bottom sheet on phones.
 * **Voice:** copy is confident, clear and warm. Active sentences, "you", no exaggeration, and gender-neutral.
 
+## 3c. Sign-up, read-only accounts and the app (database update 004)
+
+**Database (once):** in MySQL Workbench, connected to `10.10.1.4` as root, run `db/004_signup_and_readonly.sql`.
+
+* **Sign-up:** the sign-in page is the landing page and has a **Create an account** button; the sign-up page links back.
+  Step 1 asks for an email and password. Step 2, **Add your family**, asks for the family name, initials and
+  colour, with a live preview of the calendar bar. Admins get an email for every new account and see it on the Admin page.
+* **Read-only accounts:** email addresses in the `readonly_emails` table (Andromeda@ and Nasreen@optimumgroup.co.za)
+  automatically get a **View only** account when they sign up. They see the calendar, who's going and notes, but can't book,
+  change, cancel or open Admin. They skip the family step. An admin can also tick **View only** on any account.
+  To add more read-only people later:
+  `INSERT INTO readonly_emails (Email) VALUES ('someone@example.com');`
+* **Install (PWA):** Chrome, Edge and Android show **Install the app** (in the menu and on My account). On iPhone, use Safari → Share → Add to Home Screen.
+* **iPhone / iPad:** the site works as a full-screen home-screen app now (Safari → Share → Add to Home Screen).
+  For a real IPA (TestFlight / App Store / custom app), see `ios/README.md`. It needs an Apple Developer account and a Mac.
+* **Android APK:** see `android/README.md`. Once `public/downloads/riverhouse.apk` exists on the server, the sign-in page
+  and My account show **Get the Android app** on Android phones.
+
 ## 4. GitHub
 
 Create an **empty private** repository on github.com. Don't add a README, .gitignore or licence there,

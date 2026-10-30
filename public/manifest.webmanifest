@@ -1,18 +1,29 @@
 {
+  "id": "/",
   "name": "Riverhouse – Shared house calendar",
   "short_name": "Riverhouse",
-  "description": "Book the shared house and see who is going when.",
-  "start_url": "/",
+  "description": "See who's going when, and book, change or cancel your stays at the shared house.",
+  "lang": "en-ZA",
+  "start_url": "/?source=app",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
   "background_color": "#212934",
   "theme_color": "#212934",
+  "categories": ["lifestyle", "travel", "productivity"],
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
+  "screenshots": [
+    { "src": "/screenshots/calendar-wide.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "The month calendar with every family's stays" },
+    { "src": "/screenshots/calendar-phone.png", "sizes": "390x844", "type": "image/png", "form_factor": "narrow", "label": "The calendar on your phone" },
+    { "src": "/screenshots/book-phone.png", "sizes": "390x844", "type": "image/png", "form_factor": "narrow", "label": "Book a stay in a few taps" }
+  ],
   "shortcuts": [
-    { "name": "Book a stay", "url": "/bookings/new", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Book a stay", "short_name": "Book", "url": "/bookings/new", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "My account", "short_name": "Account", "url": "/account", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

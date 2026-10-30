@@ -9,3 +9,16 @@ Thumbs.db
 .preview-*.html
 _to_delete/
 .test-users.local.json
+# Android signing keys and builds - never commit these
+android/*.keystore
+android/*.jks
+android/app/
+android/build/
+android/*.apk
+android/*.aab
+public/downloads/*.apk
+# iOS build output and signing - never commit
+ios/build/
+ios/*.ipa
+ios/*.p12
+ios/*.mobileprovision

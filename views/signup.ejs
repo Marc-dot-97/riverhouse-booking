@@ -1,0 +1,35 @@
+<%- include("partials/head") %>
+<body class="login-page">
+  <main class="login">
+    <div class="login__brand" data-reveal>
+      <%- include("partials/logo") %>
+      <span class="brand__name"><%= houseName %></span>
+      <span class="brand__tag">Shared house calendar</span>
+    </div>
+    <form class="card form" method="post" action="/signup" data-reveal style="--i: 1;" novalidate>
+      <div class="steps-indicator" aria-label="Step 1 of 2">
+        <span class="steps-indicator__dot is-active"></span><span class="steps-indicator__dot"></span>
+        <span class="steps-indicator__label">Step 1 of 2 · Your sign-in</span>
+      </div>
+      <h1 class="display display--sm">Create your <em>account</em></h1>
+      <p class="muted lead lead--tight">Your email and a password. Next, you'll add your family to the calendar.</p>
+      <% if (error) { %><div class="alert alert--error alert--shake" role="alert"><%= error %></div><% } %>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field field--float">
+        <input id="email" name="email" type="email" autocomplete="email" required value="<%= email %>" placeholder=" " autofocus>
+        <label for="email">Email</label>
+      </div>
+      <div class="field field--float">
+        <input id="password" name="password" type="password" autocomplete="new-password" minlength="10" required placeholder=" ">
+        <label for="password">Password (at least 10 characters)</label>
+      </div>
+      <div class="field field--float">
+        <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="10" required placeholder=" ">
+        <label for="confirmPassword">Confirm your password</label>
+      </div>
+      <button class="btn btn--gold btn--block" type="submit" data-loading-text="Creating your account…">Continue</button>
+      <p class="switch">Already registered? <a href="/login">Sign in</a></p>
+    </form>
+  </main>
+</body>
+</html>

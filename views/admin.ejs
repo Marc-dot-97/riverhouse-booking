@@ -28,7 +28,7 @@
               </span>
             </td>
             <td><%= f.Email %><% if (!f.EmailNotifications) { %><br><span class="muted">Emails off</span><% } %></td>
-            <td><%= f.IsAdmin ? "Admin" : "Owner" %></td>
+            <td><%= f.IsReadOnly ? "View only" : (f.IsAdmin ? "Admin" : "Owner") %><% if (!f.ProfileComplete) { %><br><span class="signal signal--warn"><span class="signal__shape" aria-hidden="true"></span>Adding family</span><% } %></td>
             <td><%= f.UpcomingStays %></td>
             <td class="muted"><%= f.LastLoginAt ? new Date(f.LastLoginAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Johannesburg" }) : "Never" %></td>
             <td><a class="btn btn--outline btn--sm" href="/admin/families/<%= f.UserId %>">Edit</a></td>

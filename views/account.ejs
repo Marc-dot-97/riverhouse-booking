@@ -9,6 +9,7 @@
     </div>
   <% } %>
 
+  <% if (!user.readOnly) { %>
   <section class="card side__card" data-reveal>
     <h2 class="eyebrow">Your upcoming stays</h2>
     <% if (!upcoming.length) { %><p class="muted">No stays planned yet. <a href="/bookings/new">Book your next escape</a>.</p><% } %>
@@ -23,6 +24,12 @@
       </div>
     <% }) %>
   </section>
+  <% } else { %>
+  <section class="card side__card" data-reveal>
+    <h2 class="eyebrow">Your access</h2>
+    <p><span class="signal signal--ok"><span class="signal__shape" aria-hidden="true"></span>View only</span> You can see the calendar, who's going and their notes. Booking, changing and cancelling stays is for the families.</p>
+  </section>
+  <% } %>
 
   <section class="card side__card" data-reveal>
     <h2 class="eyebrow">The house calendar in Outlook</h2>
@@ -36,6 +43,12 @@
       <li><strong>Classic Outlook (Windows):</strong> Calendar → Add Calendar → From Internet… → paste the link → OK.</li>
     </ol>
     <p class="muted">Outlook refreshes subscribed calendars every few hours, so a new stay may take a little while to appear there. Here, you always see the live calendar.</p>
+  </section>
+
+  <section class="card side__card" data-reveal>
+    <h2 class="eyebrow">The app</h2>
+    <p>Keep the calendar one tap away – it opens full-screen, just like any other app.</p>
+    <%- include("partials/get-app") %>
   </section>
 
   <section class="card side__card" data-reveal>

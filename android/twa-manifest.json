@@ -1,0 +1,39 @@
+{
+  "packageId": "za.co.primebridge.rhbookings",
+  "host": "rh-bookings.primebridge.co.za",
+  "name": "Riverhouse – Shared house calendar",
+  "launcherName": "Riverhouse",
+  "display": "standalone",
+  "orientation": "default",
+  "themeColor": "#212934",
+  "themeColorDark": "#212934",
+  "navigationColor": "#212934",
+  "navigationColorDark": "#212934",
+  "navigationDividerColor": "#212934",
+  "navigationDividerColorDark": "#212934",
+  "backgroundColor": "#212934",
+  "enableNotifications": false,
+  "startUrl": "/?source=android",
+  "iconUrl": "https://rh-bookings.primebridge.co.za/icons/icon-512.png",
+  "maskableIconUrl": "https://rh-bookings.primebridge.co.za/icons/icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./riverhouse-upload.keystore",
+    "alias": "riverhouse"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    { "name": "Book a stay", "shortName": "Book", "url": "/bookings/new", "chosenIconUrl": "https://rh-bookings.primebridge.co.za/icons/icon-192.png" }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://rh-bookings.primebridge.co.za/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": { "enabled": false },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://rh-bookings.primebridge.co.za/",
+  "minSdkVersion": 21
+}

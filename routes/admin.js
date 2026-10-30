@@ -26,7 +26,8 @@ function readFamilyForm(body) {
     displayName: String(body.displayName || "").trim().slice(0, 100),
     initials: String(body.initials || "").trim().toUpperCase().slice(0, 3),
     colour,
-    isAdmin: body.isAdmin === "on",
+    isAdmin: body.isAdmin === "on" && body.isReadOnly !== "on",
+    isReadOnly: body.isReadOnly === "on",
     isActive: body.isActive === undefined ? true : body.isActive === "on",
     emailNotifications: body.emailNotifications === undefined ? true : body.emailNotifications === "on",
     sendEmail: body.sendEmail === "on",
@@ -104,6 +105,7 @@ router.post("/families", async (req, res, next) => {
       textColour: textColourFor(values.colour),
       passwordHash: await bcrypt.hash(password, 12),
       isAdmin: values.isAdmin,
+      isReadOnly: values.isReadOnly,
       mustChange: true,
     });
     if (!values.emailNotifications) await repo.setEmailNotifications(userId, false);
@@ -150,6 +152,7 @@ router.get("/families/:id", async (req, res, next) => {
         initials: family.Initials,
         colour: family.Colour,
         isAdmin: !!family.IsAdmin,
+        isReadOnly: !!family.IsReadOnly,
         isActive: !!family.IsActive,
         emailNotifications: !!family.EmailNotifications,
       },
@@ -171,6 +174,7 @@ router.post("/families/:id", async (req, res, next) => {
     const isMe = family.UserId === req.session.user.id;
     if (isMe && !values.isAdmin) return renderFamily(res, { family, values, status: 400, error: "You can't remove your own admin rights – another admin can do this for you." });
     if (isMe && !values.isActive) return renderFamily(res, { family, values, status: 400, error: "You can't deactivate your own account – another admin can do this for you." });
+    if (isMe && values.isReadOnly) return renderFamily(res, { family, values, status: 400, error: "You can't make your own account read-only – another admin can do this for you." });
     const losingAdmin = family.IsAdmin && family.IsActive && (!values.isAdmin || !values.isActive);
     if (losingAdmin && (await repo.countActiveAdmins(family.UserId)) === 0) {
       return renderFamily(res, { family, values, status: 400, error: "The calendar needs at least one active admin. Make someone else an admin first." });

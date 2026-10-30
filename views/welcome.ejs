@@ -1,0 +1,55 @@
+<%- include("partials/head") %>
+<body class="login-page">
+  <main class="login login--wide">
+    <div class="login__brand" data-reveal>
+      <%- include("partials/logo") %>
+      <span class="brand__name"><%= houseName %></span>
+      <span class="brand__tag">Shared house calendar</span>
+    </div>
+    <form class="card form" method="post" action="/welcome" data-reveal style="--i: 1;" novalidate>
+      <div class="steps-indicator" aria-label="Step 2 of 2">
+        <span class="steps-indicator__dot is-done"></span><span class="steps-indicator__dot is-active"></span>
+        <span class="steps-indicator__label">Step 2 of 2 · Your family</span>
+      </div>
+      <h1 class="display display--sm">Add your <em>family</em></h1>
+      <p class="muted lead lead--tight">This is how your stays appear to everyone on the calendar. You can ask an admin to change it later.</p>
+      <% if (error) { %><div class="alert alert--error alert--shake" role="alert"><%= error %></div><% } %>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div class="field field--float">
+        <input id="displayName" name="displayName" type="text" maxlength="100" required placeholder=" " value="<%= values.displayName %>" autofocus>
+        <label for="displayName">Family name, e.g. Botha family</label>
+      </div>
+      <div class="field field--float">
+        <input id="initials" name="initials" type="text" maxlength="3" required placeholder=" " value="<%= values.initials %>" data-initials>
+        <label for="initials">Initials on your calendar bar, e.g. BO</label>
+      </div>
+
+      <fieldset class="field swatches">
+        <legend>Your colour on the calendar</legend>
+        <div class="swatches__list">
+          <% palette.forEach(function (p) { %>
+            <label class="swatch" title="<%= p.name %>">
+              <input type="radio" name="colour" value="<%= p.bg %>" <%= values.colour && values.colour.toLowerCase() === p.bg.toLowerCase() ? "checked" : "" %>>
+              <span class="swatch__chip" style="background: <%= p.bg %>; color: <%= p.fg %>;" data-chip-text><%= values.initials || "AB" %></span>
+              <span class="sr-only"><%= p.name %></span>
+            </label>
+          <% }) %>
+        </div>
+      </fieldset>
+
+      <div class="preview" aria-hidden="true">
+        <span class="muted small">Preview</span>
+        <span class="preview__bar" data-preview-bar style="background: <%= values.colour %>;"><span data-preview-name><%= values.displayName || "Your family" %></span></span>
+      </div>
+
+      <button class="btn btn--gold btn--block" type="submit" data-loading-text="Adding your family…">Finish and open the calendar</button>
+    </form>
+    <form class="switch" method="post" action="/logout" data-reveal style="--i: 2;">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <span class="muted-light">Not you?</span>
+      <button class="link-btn" type="submit">Sign out</button>
+    </form>
+  </main>
+</body>
+</html>

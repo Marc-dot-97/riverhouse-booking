@@ -19,6 +19,8 @@
 }
 
 * { box-sizing: border-box; }
+/* "hidden" always wins - buttons and flex boxes must not override it */
+[hidden] { display: none !important; }
 html, body { margin: 0; }
 body { background: var(--cream); color: var(--navy); font-family: var(--font-body); font-size: 15px; line-height: 1.45; }
 a { color: var(--bronze-text); }
@@ -212,3 +214,47 @@ button { font: inherit; cursor: pointer; }
   .fab { display: flex; position: fixed; left: 16px; right: 16px; bottom: 18px; min-height: 54px; border-radius: 27px; box-shadow: 0 8px 24px rgba(33, 41, 52, 0.25); z-index: 10; }
   .form__row { grid-template-columns: 1fr; }
 }
+
+/* ---------- Sign up / Add your family ---------- */
+.login--wide { max-width: 520px; }
+.lead--tight { margin: -4px 0 4px; }
+.steps-indicator { display: flex; align-items: center; gap: 6px; }
+.steps-indicator__dot { width: 22px; height: 4px; border-radius: 2px; background: var(--stone); }
+.steps-indicator__dot.is-active { background: var(--gold); }
+.steps-indicator__dot.is-done { background: var(--navy); }
+.steps-indicator__label { margin-left: 6px; font-family: var(--font-label); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--bronze-text); }
+.switch { margin: 0; text-align: center; font-size: 14px; color: var(--muted); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; }
+.switch--card { flex-direction: column; gap: 10px; padding-top: 16px; border-top: 1px solid var(--line); }
+.login > .switch { color: #D9D2C8; }
+.link-btn { background: none; border: none; padding: 8px 4px; color: var(--gold-light); text-decoration: underline; font-size: 14px; min-height: 44px; }
+.link-btn:hover { color: var(--white); }
+.preview { display: flex; flex-direction: column; gap: 6px; }
+.preview__bar { display: flex; align-items: center; height: 30px; padding: 0 14px; border-radius: 15px; font-size: 13px; font-weight: 500; color: var(--white); transition: background-color var(--t-quick, 200ms) ease, color var(--t-quick, 200ms) ease; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* ---------- View-only + install ---------- */
+.viewonly-note { margin: 0; font-size: 13px; color: #D9D2C8; display: flex; flex-direction: column; gap: 6px; }
+.viewonly-note .signal { color: var(--cream); }
+.open--static { cursor: default; }
+.btn--outline-light { background: transparent; border-color: rgba(249, 240, 236, 0.35); color: var(--cream); }
+.btn--outline-light:hover { border-color: var(--gold-light); color: var(--white); }
+.sidebar__install[hidden] { display: none; }
+@media (max-width: 760px) {
+  .sidebar__install { order: 4; flex-basis: 100%; }
+  .viewonly-note { display: none; }
+}
+.get-app { display: flex; flex-direction: column; gap: 10px; }
+.get-app:not(:has(> :not([hidden]))) { display: none; }
+
+/* iPhone full-screen (home-screen app): keep content clear of the notch and home bar */
+@supports (padding: env(safe-area-inset-top)) {
+  .sidebar { padding-top: max(28px, env(safe-area-inset-top)); }
+  .login-page { padding-top: max(24px, env(safe-area-inset-top)); padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+  @media (max-width: 760px) {
+    .sidebar { padding-top: max(14px, env(safe-area-inset-top)); }
+    .fab { bottom: max(18px, calc(env(safe-area-inset-bottom) + 8px)); }
+    .toasts { top: max(12px, env(safe-area-inset-top)); }
+  }
+}
+.get-app__ios { margin: 0; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); background: #FBF6EF; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.get-app__ios[hidden] { display: none; }
+.get-app__ios svg { flex-shrink: 0; margin-top: 2px; color: var(--bronze-text); }

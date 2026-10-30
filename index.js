@@ -1,18 +1,20 @@
 // Riverhouse booking - shared house calendar
 // Start in dev:  npm run dev   (then open http://localhost:3000)
 import "dotenv/config";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
 import session from "express-session";
 
-import { requireLogin, requireAdmin, csrf, flash } from "./lib/auth.js";
+import { requireLogin, requireAdmin, requireWriter, csrf, flash } from "./lib/auth.js";
 import authRoutes from "./routes/auth.js";
 import calendarRoutes from "./routes/calendar.js";
 import bookingRoutes from "./routes/bookings.js";
 import accountRoutes from "./routes/account.js";
 import icsRoutes from "./routes/ics.js";
 import adminRoutes from "./routes/admin.js";
+import welcomeRoutes from "./routes/welcome.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -46,7 +48,34 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.static(path.join(__dirname, "public"), { maxAge: isProd ? "1d" : 0 }));
+// Android app (Trusted Web Activity): proves the APK and this website belong together.
+// Values come from .env once the APK is signed - see android/README.md.
+app.get("/.well-known/assetlinks.json", (req, res) => {
+  const pkg = process.env.ANDROID_PACKAGE_NAME || "za.co.primebridge.rhbookings";
+  const prints = (process.env.ANDROID_CERT_SHA256 || "").split(",").map((p) => p.trim()).filter(Boolean);
+  res.json(prints.length ? [{
+    relation: ["delegate_permission/common.handle_all_urls"],
+    target: { namespace: "android_app", package_name: pkg, sha256_cert_fingerprints: prints },
+  }] : []);
+});
+
+// "Get the Android app" button appears once public/downloads/riverhouse.apk exists.
+const apkFile = path.join(__dirname, "public", "downloads", "riverhouse.apk");
+app.use((req, res, next) => {
+  res.locals.androidApk = fs.existsSync(apkFile) ? "/downloads/riverhouse.apk" : null;
+  next();
+});
+
+app.use(express.static(path.join(__dirname, "public"), {
+  maxAge: isProd ? "1d" : 0,
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith(".apk")) {
+      res.setHeader("Content-Type", "application/vnd.android.package-archive");
+      res.setHeader("Content-Disposition", 'attachment; filename="riverhouse.apk"');
+    }
+    if (filePath.endsWith("sw.js")) res.setHeader("Cache-Control", "no-cache");
+  },
+}));
 app.use(express.urlencoded({ extended: false, limit: "20kb" }));
 
 // Outlook calendar feed: no login, no session needed
@@ -75,7 +104,8 @@ app.use((req, res, next) => {
 });
 
 app.use(authRoutes);
-app.use("/bookings", requireLogin, bookingRoutes);
+app.use("/welcome", requireLogin, welcomeRoutes);
+app.use("/bookings", requireLogin, requireWriter, bookingRoutes);
 app.use("/account", requireLogin, accountRoutes);
 app.use("/admin", requireLogin, requireAdmin, adminRoutes);
 app.use("/", requireLogin, calendarRoutes);

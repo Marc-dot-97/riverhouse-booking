@@ -11,6 +11,40 @@ if ("serviceWorker" in navigator) {
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
+// ---------- Install the app (PWA) ----------
+// Chrome / Edge / Android offer an install prompt; we show our own "Install the app" button for it.
+let installPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  installPrompt = e;
+  document.querySelectorAll("[data-install]:not([data-never])").forEach((b) => { b.hidden = false; });
+});
+window.addEventListener("appinstalled", () => {
+  installPrompt = null;
+  document.querySelectorAll("[data-install]").forEach((b) => { b.hidden = true; });
+  if (window.rhToast) window.rhToast("success", "Riverhouse is installed. Open it from your Start menu or home screen.");
+});
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest("[data-install]");
+  if (!btn || !installPrompt) return;
+  installPrompt.prompt();
+  await installPrompt.userChoice;
+  installPrompt = null;
+  btn.hidden = true;
+});
+
+// Device-specific install options
+document.addEventListener("DOMContentLoaded", () => {
+  const ua = navigator.userAgent;
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  const isIOS = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  document.querySelectorAll("[data-ios-only]").forEach((el) => { el.hidden = !isIOS || standalone; });
+  // iPhone/iPad use Safari's "Add to Home Screen" instead of an install button.
+  if (isIOS) document.querySelectorAll("[data-install]").forEach((el) => { el.setAttribute("data-never", ""); el.hidden = true; });
+  // The APK button is for Android phones that aren't already in the app.
+  document.querySelectorAll("[data-android-only]").forEach((el) => { el.hidden = !/Android/.test(ua) || standalone; });
+});
+
 // ---------- Show and hide: reveal content once, bottom-to-top ----------
 // This class is what lets motion.css hide content until it animates in.
 // It is set here (not in the page), so a stale or blocked script can never hide anything.
@@ -210,6 +244,30 @@ document.addEventListener("DOMContentLoaded", () => {
     picker.addEventListener("input", apply);
     if (radio.checked) chip.style.background = picker.value;
   });
+
+  // "Add your family": live preview of the calendar bar
+  const bar = $("[data-preview-bar]");
+  if (bar) {
+    const nameIn = $("#displayName");
+    const initIn = $("#initials");
+    const sync = () => {
+      const picked = $('input[name="colour"]:checked');
+      const chip = picked && picked.nextElementSibling;
+      if (chip) { bar.style.background = picked.value; bar.style.color = getComputedStyle(chip).color; }
+      $("[data-preview-name]", bar).textContent = nameIn.value.trim() || "Your family";
+      const init = (initIn.value.trim() || "AB").toUpperCase().slice(0, 3);
+      $$("[data-chip-text]").forEach((c) => { c.textContent = init; });
+    };
+    // Suggest initials from the family name until you type your own.
+    let ownInitials = !!initIn.value;
+    initIn.addEventListener("input", () => { ownInitials = true; sync(); });
+    nameIn.addEventListener("input", () => {
+      if (!ownInitials) initIn.value = nameIn.value.replace(/\bfamily\b/i, "").replace(/[^A-Za-z]/g, "").slice(0, 2).toUpperCase();
+      sync();
+    });
+    $$('input[name="colour"]').forEach((r) => r.addEventListener("change", sync));
+    sync();
+  }
 
   // Booking form: keep "Leave" after "Arrive" and show the number of nights
   const checkIn = $("#checkIn");
