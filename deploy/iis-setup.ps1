@@ -13,7 +13,7 @@ param(
   [string]$HostName = 'rh-bookings.primebridge.co.za',
   [string]$SiteName = '',
   [string]$Source   = (Split-Path -Parent $PSScriptRoot),
-  [string]$IisRoot  = 'C:\Apps\riverhouse-booking-iis'
+  [string]$IisRoot  = 'C:\Apps\RH-Bookings'
 )
 $ErrorActionPreference = 'Stop'
 function Step($t) { Write-Host "`n=== $t" -ForegroundColor Cyan }
@@ -43,10 +43,11 @@ if (-not $SiteName) {
 Ok "Site: $SiteName"
 
 Step 'Allow the X-Forwarded-Proto header (so the app knows the visitor used HTTPS)'
-$existing = Get-WebConfigurationProperty -PSPath 'MACHINE/WEBROOT/APPHOST' -Location $SiteName -Filter 'system.webServer/rewrite/allowedServerVariables' -Name '.' |
-  ForEach-Object { $_.name }
-if ($existing -notcontains 'HTTP_X_FORWARDED_PROTO') {
+try {
   Add-WebConfigurationProperty -PSPath 'MACHINE/WEBROOT/APPHOST' -Location $SiteName -Filter 'system.webServer/rewrite/allowedServerVariables' -Name '.' -Value @{ name = 'HTTP_X_FORWARDED_PROTO' }
+} catch {
+  # Already allowed (duplicate entry) is fine - anything else is a real error.
+  if ($_.Exception.Message -notmatch 'duplicate collection entry') { throw }
 }
 Ok 'Allowed'
 

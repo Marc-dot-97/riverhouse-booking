@@ -12,7 +12,7 @@ param(
   [string]$Source      = (Split-Path -Parent $PSScriptRoot),
   [string]$Target      = 'C:\Apps\riverhouse-booking',
   [string]$ServiceName = 'Riverhouse',
-  [int]   $Port        = 3000,
+  [int]   $Port        = 3010,
   [string]$Nssm        = 'C:\Tools\nssm\nssm.exe'
 )
 $ErrorActionPreference = 'Stop'

@@ -11,14 +11,14 @@
     4. Creates .env from env.production.example the first time (then stops so you can fill it in)
     5. Checks the database connection
     6. Installs + starts the Windows service "Riverhouse" (via NSSM), restarts on failure, starts at boot
-    7. Checks http://127.0.0.1:3000/health
+    7. Checks http://127.0.0.1:3010/health
   Safe to run again.
 #>
 param(
   [string]$Source      = (Split-Path -Parent $PSScriptRoot),
   [string]$Target      = 'C:\Apps\riverhouse-booking',
   [string]$ServiceName = 'Riverhouse',
-  [int]   $Port        = 3000,
+  [int]   $Port        = 3010,
   [string]$Nssm        = 'C:\Tools\nssm\nssm.exe'
 )
 $ErrorActionPreference = 'Stop'
@@ -77,7 +77,7 @@ if (-not (Test-Path $envFile)) {
   Start-Process notepad.exe $envFile
   exit 0
 }
-if ((Get-Content $envFile -Raw) -match '<<') { Start-Process notepad.exe $envFile; Fail '.env still has <<...>> placeholders - fill them in, save, and run again.' }
+if ((Get-Content $envFile | Where-Object { $_ -notmatch '^\s*#' }) -match '<<') { Start-Process notepad.exe $envFile; Fail '.env still has <<...>> placeholders - fill them in, save, and run again.' }
 Ok '.env present'
 
 # --- 5. Database ---

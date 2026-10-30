@@ -90,7 +90,7 @@ DB_PASSWORD, DB_SSL, HOUSE_NAME (Riverhouse), MAIL_MODE, SMTP_USER (Leopardcreek
 SMTP_PASSWORD, MS_CLIENT_ID, MS_TENANT (consumers), SESSION_STORE, ANDROID_PACKAGE_NAME, ANDROID_CERT_SHA256`
 
 * **Dev (Marc's PC):** `DB_HOST=10.10.1.4`, `MAIL_MODE=graph` (real sending works), sessions in memory.
-* **PROD:** `NODE_ENV=production`, `HOST=127.0.0.1` (only IIS can reach the app), `PORT=3000`,
+* **PROD:** `NODE_ENV=production`, `HOST=127.0.0.1` (only IIS can reach the app), `PORT=3010`,
   `BASE_URL=https://rh-bookings.primebridge.co.za`, `DB_HOST=127.0.0.1` (MySQL on the same server), sessions in MySQL,
   secure HTTPS-only cookies, `trust proxy` on.
 * **Entra app for email:** "Riverhouse booking mail", Application (client) ID **`b069c2bf-5774-403e-98f0-c2d27c0a12d4`**
@@ -168,7 +168,7 @@ IcsToken is a random UUID v4 from the app. Passwords are bcrypt (cost 12).
 
 ## 7. Deployment to PROD (10.10.1.2) – where we are
 
-Architecture: `Browser/app → IIS :443 (certificate, web.config reverse proxy via URL Rewrite + ARR) → Node on 127.0.0.1:3000
+Architecture: `Browser/app → IIS :443 (certificate, web.config reverse proxy via URL Rewrite + ARR) → Node on 127.0.0.1:3010
 (Windows service "Riverhouse" via NSSM, account LocalService, logs in C:\Apps\riverhouse-booking\logs) → MySQL on the same server`.
 The server reads the code from Marc's PC over RDP drive redirection: **`\\tsclient\C\Dev\riverhouse-booking`**.
 
@@ -179,7 +179,7 @@ Full runbook: **`deploy/README.md`**. Steps and status:
 | 1 | MySQL Workbench on **10.10.1.2**: run db 001–005 (new PROD password) | ✅ **Done** |
 | 2 | Install IIS add-ons **URL Rewrite 2.1** and **Application Request Routing 3.0** (if missing) | ⏳ Next |
 | 3 | On the server, PowerShell **as Administrator**: `powershell -ExecutionPolicy Bypass -File \\tsclient\C\Dev\riverhouse-booking\deploy\install.ps1`. The first run creates `C:\Apps\riverhouse-booking\.env` and opens Notepad: fill in `SESSION_SECRET` (new random string) + `DB_PASSWORD` (PROD), save, then **run it again** to check the DB, install and start the service, and run the health check | ⏳ |
-| 4 | `deploy\iis-setup.ps1`: enables the ARR proxy, allows the `HTTP_X_FORWARDED_PROTO` server variable, finds the IIS site bound to rh-bookings.primebridge.co.za (or use `-SiteName`), and points it at `C:\Apps\riverhouse-booking-iis` (only web.config) | ⏳ |
+| 4 | `deploy\iis-setup.ps1`: enables the ARR proxy, allows the `HTTP_X_FORWARDED_PROTO` server variable, finds the IIS site bound to rh-bookings.primebridge.co.za (or use `-SiteName`), and points it at `C:\Apps\RH-Bookings` (only web.config) | ⏳ |
 | 5 | In `C:\Apps\riverhouse-booking`: `npm run create-user` (Marc as admin) · `npm run mail-signin` (as Leopardcreek@outlook.com, InPrivate) · `npm run test-email -- marc@optimumgroup.co.za` | ⏳ |
 | 6 | Open https://rh-bookings.primebridge.co.za, sign in, test booking/cancel, check Admin → Emails | ⏳ |
 | 7 | Build the APK (see `android/README.md`, Option C Android Studio or A PWABuilder) → put the SHA-256 in the server `.env` → restart → copy the APK to `C:\Apps\riverhouse-booking\public\downloads\riverhouse.apk` | ⏳ |

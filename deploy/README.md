@@ -1,7 +1,7 @@
 # Deploying Riverhouse to PROD – 10.10.1.2 (rh-bookings.primebridge.co.za)
 
 ```
- Browser / phone app ──HTTPS 443──► IIS (certificate) ──► Node app on 127.0.0.1:3000 ──► MySQL on 10.10.1.2
+ Browser / phone app ──HTTPS 443──► IIS (certificate) ──► Node app on 127.0.0.1:3010 ──► MySQL on 10.10.1.2
                                     web.config proxy        Windows service "Riverhouse"
 ```
 
@@ -39,7 +39,7 @@ powershell -ExecutionPolicy Bypass -File \\tsclient\C\Dev\riverhouse-booking\dep
 * **First run:** it copies the app to `C:\Apps\riverhouse-booking`, installs packages, creates `.env` and opens it in
   Notepad. Fill in `SESSION_SECRET` (the script shows how to make one) and `DB_PASSWORD` (from step 1), then save.
 * **Run the same command again.** It checks the database, installs the Windows service **Riverhouse**
-  (starts with Windows and restarts itself if it stops), and confirms the app answers on `http://127.0.0.1:3000/health`.
+  (starts with Windows and restarts itself if it stops), and confirms the app answers on `http://127.0.0.1:3010/health`.
 
 ### 4. Connect IIS – PowerShell as Administrator
 
@@ -48,7 +48,7 @@ powershell -ExecutionPolicy Bypass -File \\tsclient\C\Dev\riverhouse-booking\dep
 ```
 
 It finds the IIS site bound to `rh-bookings.primebridge.co.za` and turns on the ARR proxy. It points the site at
-`C:\Apps\riverhouse-booking-iis`, a folder that holds only `web.config`, so no app files are ever served directly.
+`C:\Apps\RH-Bookings`, a folder that holds only `web.config`, so no app files are ever served directly.
 If it can't find the site: `...\iis-setup.ps1 -SiteName "Your IIS site name"`.
 
 ### 5. First admin + email (in `C:\Apps\riverhouse-booking`)
@@ -94,7 +94,7 @@ Sign in, book a test stay, cancel it, and check Admin → Emails.
 
 ## Notes
 
-* The app listens only on `127.0.0.1:3000`; nothing outside the server can reach it except through IIS.
-* Cookies are HTTPS-only in production, so opening `http://10.10.1.2:3000` directly won't keep you signed in. Always use the https address.
+* The app listens only on `127.0.0.1:3010`; nothing outside the server can reach it except through IIS.
+* Cookies are HTTPS-only in production, so opening `http://10.10.1.2:3010` directly won't keep you signed in. Always use the https address.
 * The service runs as the low-privilege `LocalService` account.
 * `.env` on the server is never overwritten by `update.ps1`, and never goes to GitHub.
